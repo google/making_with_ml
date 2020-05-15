@@ -16,9 +16,9 @@ To run this bot yourself, you'll need a [Google Cloud account](https://cloud.goo
 
 Let's get started.
 
-1. Download the [Talking to Machines repo](https://github.com/dalequark/talking_to_machines):
+1. Download the [Making with ML repo](https://github.com/dalequark/making_with_ml):
 
-`git clone git@github.com:dalequark/talking_to_machines.git`
+`git clone git@github.com:dalequark/making_with_ml.git`
 
 then:
 
@@ -43,7 +43,7 @@ Make a copy of thtat file:
 
 6. Now you should be able to use the Perspective API to analyze traits like toxicity, spam,
 incoherence, and more. To understand how tot use that API, take a look at 
-`talking_to_machines/discord_moderator/perspective.js`. In that file, you'll see all of the
+`making_with_ml/discord_moderator/perspective.js`. In that file, you'll see all of the
 attributes the API supports:
 
 ```// Some supported attributes
@@ -78,7 +78,7 @@ const attributeThresholds = {
 
 `DISCORD_TOKEN="YOUR TOKEN HERE"`
 
-10. Now you should be able to run your Discord bot from the command line. In the folder, `talking_to_machinese/discord_moderator`, run:
+10. Now you should be able to run your Discord bot from the command line. In the folder, `makcing_with_ml/discord_moderator`, run:
 
 `node discord.js`
 
