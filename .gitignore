@@ -1,0 +1,16 @@
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# dotenv environment variables file
+.env
+.env.test
+
+node_modules/
+
+# keys
+key.json
+keyfile.json
+
