@@ -1,7 +1,6 @@
 # How to Contribute
 
-Right now this repo is still being built, so it's probably a bit early
-to contribute. But if you really want to...
+We would be happy to accept your contributions.
 
 ## Contributor License Agreement
 
