@@ -1,0 +1,21 @@
+{
+    "name": "family_videos_flutter",
+    "short_name": "family_videos_flutter",
+    "start_url": ".",
+    "display": "standalone",
+    "description": "Family videos json.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/favicon-16x16.png",
+            "sizes": "16x16",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/favicon-32x32.png",
+            "sizes": "32x32",
+            "type": "image/png"
+        }
+    ]
+}
