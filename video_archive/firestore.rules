@@ -1,0 +1,8 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Only allow users in the whitelist
+    match /{document=**} {
+      allow read, write: if exists(/databases/$(database)/documents/whitelist/$(request.auth.token.email))
+    }
+  }
