@@ -1,0 +1,38 @@
+{
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase serve --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "test": "mocha"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
+    "@google-cloud/pubsub": "^2.0.0",
+    "@google-cloud/video-intelligence": "^2.10.0",
+    "algoliasearch": "^4.2.0",
+    "array.prototype.flatmap": "^1.2.3",
+    "dotenv": "^8.2.0",
+    "ffmpeg-extract-frames": "^2.0.2",
+    "ffmpeg-installer": "^1.0.2",
+    "firebase-admin": "^8.12.1",
+    "firebase-functions": "^3.6.1",
+    "hashcode": "^1.0.3",
+    "uuid": "^8.1.0"
+  },
+  "private": true,
+  "devDependencies": {
+    "chai-things": "^0.2.0",
+    "eslint": "^7.2.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-mocha": "^7.0.1",
+    "firebase-functions-test": "^0.2.1",
+    "mocha": "^7.2.0"
+  },
+  "engines": {
+    "node": "10"
+  }
+}
