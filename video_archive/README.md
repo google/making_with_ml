@@ -7,6 +7,8 @@ and use this archive to quickly search and explore them. The tool analyzes
 videos for objects in images (e.g. "baby," "wedding," "snow"), transcripts,
 and on-screen text. 
 
+See it in action in [this video](https://youtu.be/_IeS1m8r6SY).
+
 It's built using the Google Cloud [Video Intelligence API](cloud.google.com/video-intelligence), [Firebase](firebase.com), [Algolia](algolia.com) (for search),
 and runs under a frontend built in [Flutter](flutter.dev).
 
@@ -82,3 +84,9 @@ gsutil -h "x-goog-meta-timestamp:2002-04-07 12_31_12" -m cp -r your_video gs://y
 ```
 
 It passes along metadata with the video file to indicate when it was filmed.
+
+At this point, you have a fully functioning video archive backend, and all you need is a 
+UI to interact with it. I use Flutter, but you can definitely use your own web/ios/android version.
+
+10.
+TODO: Explain Flutter set up.
