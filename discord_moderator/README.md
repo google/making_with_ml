@@ -1,7 +1,7 @@
 # Building an AI-Powered Discord Moderator Bot with the Perspective API
 
 This code in this repo lets you build your own moderator bot for 
-[Discord](discordapp.com). Using the [Perspective API](perspectiveapi.com),
+[Discord](https://discordapp.com). Using the [Perspective API](https://perspectiveapi.com),
 it analyzes messages sent by users in a Discord channel and checks for
 insults, toxicity, spam, incoherence, and fliration. The bot assigns users
 emoji flags when they send messages that fall into these different categories:
