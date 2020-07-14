@@ -8,6 +8,7 @@ and with the blog posts on daleonai.com.
 |---|---|
 | [video_archive](https://github.com/google/making_with_ml/tree/master/video_archive) | AI-Powered Searchable Video Archive built with Firebase, Flutter, and the Video Intelligence API |
 | [discord_moderator](https://github.com/google/making_with_ml/tree/master/discord_moderator) | Discord moderation bot that flags toxic/flirty/insulting messages |
+| [sports_ai](https://github.com/google/making_with_ml/tree/master/sports_ai) | Analyze your tennis serve or penalty kick with the Video Intelligence API |
 
 
 
