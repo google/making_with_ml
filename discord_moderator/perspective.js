@@ -19,8 +19,6 @@ const googleapis = require('googleapis');
 
 require('dotenv').config();
 
-DISCOVERY_URL = 'https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1';
-
 // Some supported attributes
 // attributes = ["TOXICITY", "SEVERE_TOXICITY", "IDENTITY_ATTACK", "INSULT",
 // "PROFANITY", "THREAT", "SEXUALLY_EXPLICIT", "FLIRTATION", "SPAM",
