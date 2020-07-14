@@ -1,5 +1,5 @@
 # AI-Powered Video Archive
-![Screenshot of AI Video Archive](./readme_pics/ui_preview.png)
+![Screenshot of AI Video Archive](https://daleonai.com/images/ui_preview.png)
 
 This project builds a AI-Powered Searchable Video Archive on Google Cloud. 
 Upload your videos to [Cloud Storage ](cloud.google.com/storage) 
