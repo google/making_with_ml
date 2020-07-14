@@ -1,4 +1,5 @@
 # Building an AI-Powered Discord Moderator Bot with the Perspective API
+Want a deep dive on this project? Read the [blog](https://daleonai.com/build-your-own-ai-moderator-bot-for-discord-with-the-perspective-api).
 
 This code in this repo lets you build your own moderator bot for 
 [Discord](discordapp.com). Using the [Perspective API](perspectiveapi.com),
