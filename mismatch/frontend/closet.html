@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cher's Closet</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Nova+Square&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Aldrich&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+</head>
+
+<style>
+
+body {
+    background: black;
+    /* font-family: 'Nova Square', cursive; */
+    font-family: 'Aldrich', sans-serif;
+    background-image: url('cheeta.png');
+    margin: 0px;
+    padding: 0px;
+}
+
+.ig-box {
+  /* margin: 90px; */
+  margin-top:40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.ig-img {
+    width: 800px;
+    height: auto;
+    /* border:10px; */
+    border: 25px solid #d499ff;
+    border-style:inset;
+}
+
+.header {
+    background: #242426;
+    width: 102%;
+    margin: 0px;
+    padding: 0px;
+    margin-left: -10px;
+    height: 120px;
+    margin-top: -20px;
+    /* border-bottom: 5px solid #d499ff; */
+    border-top:30px solid #d499ff;
+}
+
+.header p {
+    color: white;
+    text-align: center;
+    font-size: 50px;
+    margin-top: 20px;
+
+}
+
+@import url(https://fonts.googleapis.com/css?family=VT323);
+* {
+  box-sizing: border-box;
+}
+
+
+.btn-container {
+  margin: 0 auto;
+  max-width: 1100px;
+  /* padding: 2ch; */
+  width: 100%;
+  text-align: center;
+}
+
+.btn {
+  font-family: "VT323", monospace;
+  /* font-size: 64px; */
+  background: #7C7C7C;
+  border-bottom: 6px inset rgba(0, 0, 0, 0.5);
+  border-left: 6px inset rgba(0, 0, 0, 0.5);
+  border-right: 6px inset rgba(255, 255, 255, 0.5);
+  border-top: 6px inset rgba(255, 255, 255, 0.5);
+  box-sizing: border-box;
+  color: white;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 5.2rem;
+  margin: 1rem;
+  min-width: 200px;
+  padding: .5rem;
+  text-transform: uppercase;
+  width: auto;
+}
+.btn:focus, .btn:hover {
+  background: #BCBCBC;
+}
+
+.closet-container {
+    /* background: #d499ff; */
+    background: black;
+    /* margin-top: 20px; */
+    width: 75%;
+    height: 300px;
+    margin-left: 12%;
+    color: hsl(0, 0%, 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.closet-header {
+    /* background: #d499ff; */
+    background: black;
+    margin-top: 20px;
+    width: 75%;
+    height: 100px;
+    margin-left: 12%;
+    color: hsl(0, 0%, 100%);
+    font-size: 50px;
+    padding-top:5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 5px solid #d499ff;
+}
+
+.closet-img {
+    width: 250px;
+    height: 250px;
+    background: white;
+    margin: 10px;
+    overflow: hidden;
+    /* display: inline-block; */
+    /* display: flex; */
+}
+
+
+</style>
+
+<body>
+<div class="header">
+    <p>Fashion Finder</p>
+</div>
+
+    <div class="ig-box">
+        <img class="ig-img" src="ig1.png">
+    </div>
+
+    <div class="btn-container">
+        <a class="btn">PREV</a>
+        <a class="btn">NEXT</a>
+    </div>
+
+    <div class="closet-header"><blink>💜&nbsp;</blink> Matches Found <blink>&nbsp;💜</blink></div>
+    <div class="closet-container">
+        <div class="closet-img">
+            <img src="whiteshirt.jpg">
+        </div>
+        <div class="closet-img">
+            <img src="blackpants.jpg">
+        </div>
+        <div class="closet-img">
+            <img src="whiteshoes.jpg">
+        </div>
+    </div>
+
+
+</body>
+
+
+<script type="text/javascript">
+    (function() {
+      var blinks = document.getElementsByTagName('blink');
+      var visibility = 'hidden';
+      window.setInterval(function() {
+        for (var i = blinks.length - 1; i >= 0; i--) {
+          blinks[i].style.visibility = visibility;
+        }
+        visibility = (visibility === 'visible') ? 'hidden' : 'visible';
+      }, 600);
+    })();
+  </script>
+
+</html>
