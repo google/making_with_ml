@@ -1,6 +1,6 @@
 # Use a Universal Sentence Encoder to Rank Query Responses
 
-Read the full blog post [here](https://daleonai.com/semantic_ml)
+Read the full blog post [here](https://daleonai.com/semantic-ml)
 ```
 > npm install
 > node use_sample.js
