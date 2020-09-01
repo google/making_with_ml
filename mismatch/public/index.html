@@ -7,16 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Nova+Square&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Aldrich&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-
-  <!-- The core Firebase JS SDK is always required and must be listed first -->
-  <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-app.js"></script>
-
-  <!-- TODO: Add SDKs for Firebase products that you want to use
-     https://firebase.google.com/docs/web/setup#available-libraries -->
-  <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-analytics.js"></script>
-  
-  <script src="./firebaseConfig.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 </head>
 
 <style>
@@ -134,7 +125,7 @@
     border-bottom: 5px solid #d499ff;
   }
 
-  .closet-img {
+  .closet-div {
     width: 250px;
     height: 250px;
     background: white;
@@ -143,52 +134,50 @@
     /* display: inline-block; */
     /* display: flex; */
   }
+  
+  .closet-img {
+    width: 100%;
+  }
+  
 </style>
 
 <body>
-  <div class="header">
-    <p>Fashion Finder</p>
-  </div>
-
-  <div class="ig-box">
-    <img class="ig-img" src="ig1.png">
-  </div>
-
-  <div class="btn-container">
-    <a class="btn">PREV</a>
-    <a class="btn">NEXT</a>
-  </div>
-
-  <div class="closet-header">
-    <blink>💜&nbsp;</blink> Matches Found <blink>&nbsp;💜</blink>
-  </div>
-  <div class="closet-container">
-    <div class="closet-img">
-      <img src="whiteshirt.jpg">
+  <div id="app">
+    <div class="header">
+      <p>Fashion Finder</p>
     </div>
-    <div class="closet-img">
-      <img src="blackpants.jpg">
+
+    <div class="ig-box">
+      <img class="ig-img" :src="outfit ? outfit.srcUrl : null">
     </div>
-    <div class="closet-img">
-      <img src="whiteshoes.jpg">
+    <div class="btn-container">
+      <a class="btn">PREV</a>
+      <a class="btn">NEXT</a>
+    </div>
+
+    <div class="closet-header">
+      <blink>💜&nbsp;</blink> Matches Found <blink>&nbsp;💜</blink>
+    </div>
+    <div class="closet-container">
+      <div v-for="match in outfit.matches" key="match.image" class="closet-div">
+        <img class="closet-img" :src="match.imageUrl">
+      </div>
     </div>
   </div>
 
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-app.js"></script>
 
+  <!-- TODO: Add SDKs for Firebase products that you want to use
+      https://firebase.google.com/docs/web/setup#available-libraries -->
+  <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-firestore.js"></script>
+
+  <script src="./firebaseConfig.js"></script>
+  <script src="https://unpkg.com/vuefire@2.0.0-alpha.6/dist/vuefire.js"></script>
+  <script src="./index.js"></script>
+  
 </body>
 
-
-<script type="text/javascript">
-  (function () {
-    var blinks = document.getElementsByTagName('blink');
-    var visibility = 'hidden';
-    window.setInterval(function () {
-      for (var i = blinks.length - 1; i >= 0; i--) {
-        blinks[i].style.visibility = visibility;
-      }
-      visibility = (visibility === 'visible') ? 'hidden' : 'visible';
-    }, 600);
-  })();
-</script>
 
 </html>
