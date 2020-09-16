@@ -1,0 +1,48 @@
+body {
+  font-family: "Aldrich", sans-serif;
+}
+
+.featuredImg div {
+  /* margin: 90px; */
+  width: 100%;
+  margin-top: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.featuredImg img {
+  max-width: 100%;
+}
+
+.header p {
+  text-align: center;
+  font-size: 50px;
+  margin-top: 20px;
+}
+
+.matchBar {
+  padding: 10px 0px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.btn {
+  font-family: "VT323", monospace;
+  /* font-size: 64px; */
+  background: #7c7c7c;
+  border-bottom: 6px inset rgba(0, 0, 0, 0.5);
+  border-left: 6px inset rgba(0, 0, 0, 0.5);
+  border-right: 6px inset rgba(255, 255, 255, 0.5);
+  border-top: 6px inset rgba(255, 255, 255, 0.5);
+  box-sizing: border-box;
+  cursor: pointer;
+  font-size: 5.2rem;
+  /* margin: 1rem; */
+  width: 40%;
+  /* min-width: 200px; */
+  text-transform: uppercase;
+}
