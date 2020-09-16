@@ -13,6 +13,7 @@ import {
 import { StarBorderOutlined, Star } from "@material-ui/icons";
 import yellow from "@material-ui/core/colors/yellow";
 import GridList from "@material-ui/core/GridList";
+import SwipeableViews from 'react-swipeable-views';
 
 interface ProductMatch {
   image: string;
@@ -32,8 +33,6 @@ interface FirestoreMatchCard {
 }
 interface MatchCardProps extends FirestoreMatchCard {
   source: string;
-  nextFn: any;
-  backFn: any;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -115,20 +114,21 @@ export const MatchScreen = ({ userid }: { userid: string }) => {
 
   let thisPage = pages.length ? pages[index] : null;
   console.log(`Page had score ${thisPage?.score}`);
+
   return (
     <div className="matchScreen">
       {thisPage ? (
-        <MatchCard
-          source="closet"
-          backFn={() => {
-            setIndex((index > 0 ? index - 1 : pages.length - 1) % pages.length);
-          }}
-          nextFn={() => {
-            setIndex((index + 1) % pages.length);
-          }}
-          favorite={true}
-          {...thisPage}
-        />
+        <SwipeableViews enableMouseEvents>
+            {
+                pages.map((page, i) => (
+                    <MatchCard
+                    source="closet"
+                    favorite={true}
+                    {...page}
+                    />
+                ))
+            }
+        </SwipeableViews>
       ) : (
         <CircularProgress />
       )}
