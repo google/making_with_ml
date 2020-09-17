@@ -18,8 +18,7 @@ export default function App(){
   const classes = useStyles();
   return (
     <div className={classes.app}>
-      <MenuScreen userid="alovelace" />
-      {/* <ScreenContainer userid="alovelace"/> */}
+      <ScreenContainer userid="alovelace"/>
     </div>
   );
 }

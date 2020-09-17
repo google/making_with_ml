@@ -13,8 +13,10 @@ import { makeStyles } from "@material-ui/core/styles";
 import MenuIcon from "@material-ui/icons/Menu";
 import { MatchScreen } from "./MatchScreen";
 import { ReactComponent as Hanger } from "../hanger.svg";
+import { ReactComponent as SettingsSvg } from "../settings_icon.svg";
 import { FavoriteBorderOutlined } from "@material-ui/icons";
 import logo from "../logo.gif";
+import { MenuScreen } from "./MenuScreen";
 
 const useStyles = makeStyles((theme) => ({
   appBar: {},
@@ -40,33 +42,31 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 interface ScreenContainerProps {
-    userid: string;
-};
+  userid: string;
+}
 
 export const ScreenContainer = (props: ScreenContainerProps) => {
+  const [currentScreen, setCurrentScreen] = React.useState(0);
+
   const classes = useStyles();
   return (
     <>
-      <AppBar color="transparent" position="static" className={classes.appBar}>
-        <Toolbar>
-          <IconButton
-            edge="start"
-            className={classes.menuButton}
-            color="inherit"
-            aria-label="menu"
-          >
-            <MenuIcon />
-          </IconButton>
-          <div className={classes.title}>
-            <img src={logo} alt="android logo" className={classes.logo}></img>
-            <Typography variant="h6">AiStylist</Typography>
-          </div>
-        </Toolbar>
-      </AppBar>
       <div className={classes.screen}>
-        <MatchScreen userid={props.userid} />
+        {
+          [
+            <MatchScreen userid={props.userid} />,
+            <MatchScreen userid={props.userid} />,
+            <MenuScreen userid={props.userid} />
+          ][currentScreen]
+        }
       </div>
-      <BottomNavigation showLabels>
+      <BottomNavigation
+        showLabels
+        value={currentScreen}
+        onChange={(_, newValue) => {
+          setCurrentScreen(newValue);
+        }}
+      >
         <BottomNavigationAction
           label="Matches"
           icon={<FavoriteBorderOutlined />}
@@ -76,6 +76,14 @@ export const ScreenContainer = (props: ScreenContainerProps) => {
           icon={
             <SvgIcon>
               <Hanger />
+            </SvgIcon>
+          }
+        ></BottomNavigationAction>
+        <BottomNavigationAction
+          label="Settings"
+          icon={
+            <SvgIcon>
+              <SettingsSvg />
             </SvgIcon>
           }
         ></BottomNavigationAction>

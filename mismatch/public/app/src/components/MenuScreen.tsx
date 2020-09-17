@@ -11,7 +11,7 @@ import {
   Box,
 } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
-import { StoresList } from "./StoresList";
+import { BrandsList } from "./BrandsList";
 import { SocialStreamList } from "./SocialStreamList";
 
 const useStyles = makeStyles((theme) => ({}));
@@ -35,26 +35,50 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+interface FirestoreSocialAcct {
+  name: string;
+  logo: string;
+}
+
+interface FirestoreBrand {
+    name: string;
+    logo: string;
+}
+
 export const MenuScreen = ({ userid }: { userid: string }) => {
   const classes = useStyles();
-  const stores = [
-    { name: "bloomingdales", logo: "link" },
-    { name: "macys", logo: "link" },
-  ];
-  const socials = [{ name: "codergirl_", logo: "link" }];
+  const [socials, setSocials] = useState<FirestoreSocialAcct[]>([]);
+  const [brands, setBrands] = useState<FirestoreBrand[]>([]);
+
+  useEffect(() => {
+    /* Load social accounts from db */
+    let fsSocials: FirestoreSocialAcct[] = [];
+    let fsSocialDb = db.collection("users").doc(userid).collection("socials");
+    fsSocialDb.get().then((snapshot) => {
+      snapshot.forEach((doc) => {
+        let socialAcct = doc.data() as FirestoreSocialAcct;
+        fsSocials.push(socialAcct);
+      });
+      setSocials(fsSocials);
+    });
+
+    /* Load brands from db */
+    let fsBrands: FirestoreBrand[] = [];
+    let fsBrandsDb = db.collection("users").doc(userid).collection("brands");
+    fsBrandsDb.get().then((snapshot) => {
+      snapshot.forEach((doc) => {
+        let brand = doc.data() as FirestoreBrand;
+        fsBrands.push(brand);
+      });
+      setBrands(fsBrands);
+    });
+
+  }, [userid]);
 
   const [tab, setTab] = React.useState(0);
 
   return (
     <>
-      <AppBar position="static" color="transparent">
-        <Toolbar>
-          <IconButton edge="start">
-            <Close />
-            <Typography variant="h6">Content Settings</Typography>
-          </IconButton>
-        </Toolbar>
-      </AppBar>
       <Tabs
         variant="fullWidth"
         indicatorColor="primary"
@@ -65,7 +89,7 @@ export const MenuScreen = ({ userid }: { userid: string }) => {
         <Tab label="Instagram Accounts"></Tab>
       </Tabs>
       <TabPanel value={tab} index={0}>
-        <StoresList stores={stores} />
+        <BrandsList brands={brands} />
       </TabPanel>
       <TabPanel value={tab} index={1}>
         <SocialStreamList socials={socials} />

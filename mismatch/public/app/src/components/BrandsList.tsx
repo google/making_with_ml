@@ -5,22 +5,22 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-interface StoreItem {
+interface BrandItem {
     name: string;
     logo: string;
 };
 
-interface StoresListProps {
-     stores: StoreItem[];
+interface BrandListProps {
+     brands: BrandItem[];
 };
 
-export const StoresList = (props: StoresListProps) => {
+export const BrandsList = (props: BrandListProps) => {
     return (
         <List>
             {
-                props.stores.map((store: StoreItem) => (
+                props.brands.map((brand: BrandItem) => (
                     <ListItem>
-                        <ListItemText primary={store.name} />
+                        <ListItemText primary={brand.name} />
                     </ListItem>
                 ))
             }
