@@ -10,7 +10,9 @@ interface FirestoreClosetItem {
 }
 
 const useStyles = makeStyles((theme) => ({
-  closetScreen: {},
+  closetScreen: {
+
+  },
   chipBar: {
     display: "flex",
     justifyContent: "flex-start",
@@ -47,8 +49,9 @@ export const ClosetScreen = ({ userid }: { userid: string }) => {
 
       const labels: { [key: string]: boolean } = {};
       fsItems.forEach((item) => {
-        labels[item.type] = true;
+        labels[item.type] = false;
       });
+      labels['jacket'] = true;
       setLabels(labels);
     });
   }, [userid]);

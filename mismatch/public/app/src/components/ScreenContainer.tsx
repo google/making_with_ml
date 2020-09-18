@@ -25,6 +25,9 @@ const useStyles = makeStyles((theme) => ({
     overflow: "auto"
   },
   bottomNav: {
+    position: "fixed",
+    width: "100%",
+    bottom: 0
   },
   menuButton: {
     marginRight: theme.spacing(2),
