@@ -1,7 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable jsx-a11y/accessible-emoji */
 import React, { useEffect, useState } from "react";
-import "./MatchScreen.css";
 import { db } from "../firebase";
 import {
   CircularProgress,
@@ -33,9 +32,13 @@ interface FirestoreMatchCard {
 }
 interface MatchCardProps extends FirestoreMatchCard {
   source: string;
+  saveMatchFn: (matchId: string) => void;
 }
 
 const useStyles = makeStyles((theme) => ({
+  matchCard: {
+    padding: 20,
+  },
   gridList: {
     width: 500,
   },
@@ -47,53 +50,95 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "space-around",
     backgroundColor: theme.palette.background.paper,
   },
+  featuredImgCard: {
+    position: "relative",
+    borderRadius: 5,
+    overflow: "hidden",
+    boxShadow: theme.shadows[4],
+    marginBottom: 10,
+  },
+  featuredImg: {
+    width: "100%",
+    display: "block",
+    zIndex: -1
+  },
+  matchBar: {
+    padding: "10px 10px",
+    width: "100%",
+    textAlign: "center",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    filter: "drop-shadow(0 0 5px rgba(0, 0, 0, 0.3))",
+    color: theme.palette.primary.contrastText
+  },
+  matchTile: {
+    "& .MuiGridListTile-tile": {
+      borderRadius: 5,
+      overflow: "hidden",
+    }
+  },
+  matchTileImage: {
+    display: "block",
+    width: "100%",
+  }
+  
 }));
 
 const MatchCard = (props: MatchCardProps) => {
   const classes = useStyles();
   return (
-    <>
-      <div className="featuredImg">
-        <img className="featuredImg" src={props.srcUrl} alt="Fashion pic" />
-      </div>
-      <div className="matchBar">
-        <Typography color="primary" variant="h6">
-          {props.matches.length} matching items found!
-        </Typography>
-        <Button
-          variant={"outlined"}
-          color="primary"
-          startIcon={
-            props.favorite ? (
-              <Star style={{ color: yellow[700] }} />
-            ) : (
-              <StarBorderOutlined />
-            )
-          }
-        >
-          Favorite
-        </Button>
+    <div className={classes.matchCard}>
+      <div className={classes.featuredImgCard}>
+        <img className={classes.featuredImg} alt="featured style" src={props.srcUrl}/>
+        <div className={classes.matchBar}>
+          <Typography variant="h6">
+            {props.matches.length} Matches found!
+          </Typography>
+          <Button
+            variant={"outlined"}
+            color="primary"
+            startIcon={
+              props.favorite ? (
+                <Star style={{ color: yellow[700] }} />
+              ) : (
+                <StarBorderOutlined />
+              )
+            }
+            onClick={() => { props.saveMatchFn(props.srcId)}}
+          >
+            Favorite
+          </Button>
+        </div>
       </div>
       <div className={classes.closetContainer}>
-        <GridList cellHeight={180} className={classes.gridList}>
+        <GridList spacing={10} cellHeight={180} className={classes.gridList}>
           {props.matches.map((match, i) => (
-            <GridListTile>
-                <img
-                key={match.image}
-                alt="match"
-                src={match.imageUrl}
-                />
+            <GridListTile className={classes.matchTile}>
+                  <img 
+                  className={classes.matchTileImage}
+                  key={match.image}
+                  alt="match"
+                  src={match.imageUrl}
+                  />
             </GridListTile>
           ))}
         </GridList>
       </div>
-    </>
+    </div>
   );
 };
 
-export const MatchScreen = ({ userid }: { userid: string }) => {
+export const MatchScreen = ({ userid }: { userid: string}) => {
+
   const [pages, setPages] = useState<FirestoreMatchCard[]>([]);
-  const [index, setIndex] = useState(0);
+
+  const saveMatchFn = (matchId: string) => {
+    alert("Saved match");
+  }
 
   useEffect(() => {
     let pages = db
@@ -112,18 +157,19 @@ export const MatchScreen = ({ userid }: { userid: string }) => {
     });
   }, [userid]);
 
-  let thisPage = pages.length ? pages[index] : null;
+  let thisPage = pages.length ? pages[0] : null;
   console.log(`Page had score ${thisPage?.score}`);
 
   return (
-    <div className="matchScreen">
+    <div>
       {thisPage ? (
         <SwipeableViews enableMouseEvents>
             {
                 pages.map((page, i) => (
                     <MatchCard
                     source="closet"
-                    favorite={true}
+                    favorite={page.favorite}
+                    saveMatchFn={saveMatchFn}
                     {...page}
                     />
                 ))
