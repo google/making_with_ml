@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import { db } from "../firebase";
-import { makeStyles, Chip, GridList, GridListTile } from "@material-ui/core";
+import { db, toFbThumbUrl } from "../firebase";
+import { makeStyles, Chip, GridList, GridListTile, CircularProgress } from "@material-ui/core";
 import { Check } from "@material-ui/icons";
 
 interface FirestoreClosetItem {
@@ -28,8 +28,35 @@ const useStyles = makeStyles((theme) => ({
       width: "100%"
   },
   itemTile: {},
-  itemTileImage: {}
+  itemTileImage: {
+      height: "100%",
+      objectFit: "cover"
+  }
 }));
+
+/* This component is redundant... move when we figure out
+a better fix for the image resizing thing */
+const ClosetImage = ({item}: { item: FirestoreClosetItem}) => {
+    const classes = useStyles();
+    const [thumbUrl, setThumbUrl] = React.useState<string>("");
+  
+    useEffect(() => {
+      toFbThumbUrl(item.url).then((thumbUrl: string) => {
+        setThumbUrl(thumbUrl);
+      });
+    }, [item]);
+    
+    return (
+      thumbUrl.length ? 
+      <img 
+        className={classes.itemTileImage}
+        key={item.name}
+        alt={item.name}
+        src={thumbUrl}
+      /> : <CircularProgress />
+    );
+  
+  }
 
 export const ClosetScreen = ({ userid }: { userid: string }) => {
   const [items, setItems] = React.useState<FirestoreClosetItem[]>([]);
@@ -51,6 +78,7 @@ export const ClosetScreen = ({ userid }: { userid: string }) => {
       fsItems.forEach((item) => {
         labels[item.type] = false;
       });
+      // TODO: remove
       labels['jacket'] = true;
       setLabels(labels);
     });
@@ -79,12 +107,7 @@ export const ClosetScreen = ({ userid }: { userid: string }) => {
         {items.map((item, _) => (
                 labels[item.type] ? 
                 <GridListTile className={classes.itemTile}>
-                    <img
-                    className={classes.itemTileImage}
-                    key={item.name}
-                    alt={item.name}
-                    src={item.url}
-                    />
+                    <ClosetImage item={item}/>
                 </GridListTile> : <></>
         ))}
       </GridList>

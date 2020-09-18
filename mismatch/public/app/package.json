@@ -14,6 +14,7 @@
     "@types/react-dom": "^16.9.8",
     "@types/react-swipeable-views": "^0.13.0",
     "firebase": "^7.19.1",
+    "node-vibrant": "^3.1.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.3",

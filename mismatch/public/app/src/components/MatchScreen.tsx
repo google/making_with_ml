@@ -1,20 +1,19 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable jsx-a11y/accessible-emoji */
 import React, { useEffect, useState } from "react";
-import { db } from "../firebase";
+import { db, toFbThumbUrl } from "../firebase";
 import {
   CircularProgress,
   Typography,
-  Button,
   makeStyles,
   GridListTile,
   SvgIcon,
 } from "@material-ui/core";
-import { StarBorderOutlined, Star } from "@material-ui/icons";
 import { ReactComponent as Hanger } from "../hanger.svg";
-import yellow from "@material-ui/core/colors/yellow";
 import GridList from "@material-ui/core/GridList";
 import SwipeableViews from 'react-swipeable-views';
+// TODO
+// import Vibrant from 'node-vibrant';
 
 interface ProductMatch {
   image: string;
@@ -93,9 +92,32 @@ const useStyles = makeStyles((theme) => ({
   
 }));
 
+const ClosetImage = ({url}: { url: string}) => {
+  const classes = useStyles();
+  const [thumbUrl, setThumbUrl] = React.useState<string>("");
+
+  useEffect(() => {
+    toFbThumbUrl(url).then((thumbUrl: string) => {
+      setThumbUrl(thumbUrl);
+    });
+  }, [url]);
+  
+  return (
+    thumbUrl.length ? 
+    <img 
+      className={classes.matchTileImage}
+      key={url}
+      alt="match"
+      src={thumbUrl}
+    /> : <CircularProgress />
+  );
+
+}
+
 const MatchCard = (props: MatchCardProps) => {
 
   const classes = useStyles();
+
   return (
     <div className={classes.matchCard}>
       <div className={classes.featuredImgCard}>
@@ -116,12 +138,7 @@ const MatchCard = (props: MatchCardProps) => {
         <GridList spacing={10} cellHeight={180} className={classes.gridList}>
           {props.matches.map((match, i) => (
             <GridListTile className={classes.matchTile}>
-                  <img 
-                  className={classes.matchTileImage}
-                  key={match.image}
-                  alt="match"
-                  src={match.imageUrl}
-                  />
+              <ClosetImage url={match.imageUrl}/>
             </GridListTile>
           ))}
         </GridList>
@@ -154,13 +171,9 @@ export const MatchScreen = ({ userid }: { userid: string}) => {
       });
       setPages(matchCards);
     });
-    console.log("Ran use effect and favorites is ");
-    console.log(favorites[0])
   }, [userid]);
 
   let thisPage = pages.length ? pages[0] : null;
-  console.log(`Page had score ${thisPage?.score}`);
-  console.log(`Favorites is `, favorites);
   return (
     <div>
       {thisPage ? (

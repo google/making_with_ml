@@ -1,9 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { makeStyles, List, ListItem, ListItemText } from "@material-ui/core";
+import React, {  } from "react";
+import { List, ListItem, ListItemText } from "@material-ui/core";
 
-const useStyles = makeStyles((theme) => ({
-
-}));
 
 interface SocialFeed {
     name: string;
