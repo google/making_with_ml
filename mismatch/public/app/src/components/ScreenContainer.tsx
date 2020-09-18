@@ -51,7 +51,7 @@ interface ScreenContainerProps {
 }
 
 export const ScreenContainer = (props: ScreenContainerProps) => {
-  const [currentScreen, setCurrentScreen] = React.useState(1);
+  const [currentScreen, setCurrentScreen] = React.useState(0);
 
   const classes = useStyles();
   return (

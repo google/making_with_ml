@@ -8,8 +8,10 @@ import {
   Button,
   makeStyles,
   GridListTile,
+  SvgIcon,
 } from "@material-ui/core";
 import { StarBorderOutlined, Star } from "@material-ui/icons";
+import { ReactComponent as Hanger } from "../hanger.svg";
 import yellow from "@material-ui/core/colors/yellow";
 import GridList from "@material-ui/core/GridList";
 import SwipeableViews from 'react-swipeable-views';
@@ -32,7 +34,7 @@ interface FirestoreMatchCard {
 }
 interface MatchCardProps extends FirestoreMatchCard {
   source: string;
-  saveMatchFn: (matchId: string) => void;
+  toggleSavedFn: () => void;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -84,11 +86,15 @@ const useStyles = makeStyles((theme) => ({
   matchTileImage: {
     display: "block",
     width: "100%",
+  },
+  favorite: {
+    width: 100
   }
   
 }));
 
 const MatchCard = (props: MatchCardProps) => {
+
   const classes = useStyles();
   return (
     <div className={classes.matchCard}>
@@ -98,20 +104,12 @@ const MatchCard = (props: MatchCardProps) => {
           <Typography variant="h6">
             {props.matches.length} Matches found!
           </Typography>
-          <Button
-            variant={"outlined"}
-            color="primary"
-            startIcon={
-              props.favorite ? (
-                <Star style={{ color: yellow[700] }} />
-              ) : (
-                <StarBorderOutlined />
-              )
-            }
-            onClick={() => { props.saveMatchFn(props.srcId)}}
-          >
-            Favorite
-          </Button>
+          <div className={classes.favorite} onClick={props.toggleSavedFn}>
+            <SvgIcon htmlColor={props.favorite ? "#eddd09" : ""}>
+              <Hanger />
+            </SvgIcon>
+            <Typography>{props.favorite ? "Saved" : "Save look"}</Typography>
+          </div>
         </div>
       </div>
       <div className={classes.closetContainer}>
@@ -135,9 +133,10 @@ const MatchCard = (props: MatchCardProps) => {
 export const MatchScreen = ({ userid }: { userid: string}) => {
 
   const [pages, setPages] = useState<FirestoreMatchCard[]>([]);
+  const [favorites, setFavorites] = useState<{[key: string]: boolean}>({});
 
-  const saveMatchFn = (matchId: string) => {
-    alert("Saved match");
+  const toggleSavedFn = (srcId: string) => {
+    setFavorites({...favorites, [srcId]: !favorites[srcId]});
   }
 
   useEffect(() => {
@@ -155,11 +154,13 @@ export const MatchScreen = ({ userid }: { userid: string}) => {
       });
       setPages(matchCards);
     });
+    console.log("Ran use effect and favorites is ");
+    console.log(favorites[0])
   }, [userid]);
 
   let thisPage = pages.length ? pages[0] : null;
   console.log(`Page had score ${thisPage?.score}`);
-
+  console.log(`Favorites is `, favorites);
   return (
     <div>
       {thisPage ? (
@@ -167,9 +168,10 @@ export const MatchScreen = ({ userid }: { userid: string}) => {
             {
                 pages.map((page, i) => (
                     <MatchCard
+                    key={page.srcId}
                     source="closet"
-                    favorite={page.favorite}
-                    saveMatchFn={saveMatchFn}
+                    favorite={favorites[page.srcId] as boolean}
+                    toggleSavedFn={() => toggleSavedFn(page.srcId)}
                     {...page}
                     />
                 ))
