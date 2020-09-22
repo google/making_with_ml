@@ -106,7 +106,7 @@ export const ClosetScreen = ({ userid }: { userid: string }) => {
       <GridList cols={3} className={classes.gridList}>
         {items.map((item, _) => (
                 labels[item.type] ? 
-                <GridListTile className={classes.itemTile}>
+                <GridListTile key={item.url} className={classes.itemTile}>
                     <ClosetImage item={item}/>
                 </GridListTile> : <></>
         ))}

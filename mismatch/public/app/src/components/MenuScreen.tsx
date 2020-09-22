@@ -1,20 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import {
-  AppBar,
-  Toolbar,
-  IconButton,
-  makeStyles,
-  Typography,
   Tabs,
   Tab,
-  Box,
 } from "@material-ui/core";
-import { Close } from "@material-ui/icons";
 import { BrandsList } from "./BrandsList";
 import { SocialStreamList } from "./SocialStreamList";
-
-const useStyles = makeStyles((theme) => ({}));
 
 interface TabPanelProps {
   children: React.ReactNode;
@@ -22,7 +13,7 @@ interface TabPanelProps {
   value: number;
 }
 function TabPanel(props: TabPanelProps) {
-  const { children, value, index } = props;
+  const { value, index } = props;
   return (
     <div
       role="tabpanel"
@@ -46,7 +37,6 @@ interface FirestoreBrand {
 }
 
 export const MenuScreen = ({ userid }: { userid: string }) => {
-  const classes = useStyles();
   const [socials, setSocials] = useState<FirestoreSocialAcct[]>([]);
   const [brands, setBrands] = useState<FirestoreBrand[]>([]);
 

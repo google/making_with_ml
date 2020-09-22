@@ -11,9 +11,10 @@ import {
 } from "@material-ui/core";
 import { ReactComponent as Hanger } from "../hanger.svg";
 import GridList from "@material-ui/core/GridList";
-import SwipeableViews from 'react-swipeable-views';
-// TODO
-// import Vibrant from 'node-vibrant';
+import SwipeableViews from "react-swipeable-views";
+import { useColor } from "color-thief-react";
+import logo from "../logo.png";
+import { ReactComponent as Ailogo } from "../ailogo.svg";
 
 interface ProductMatch {
   image: string;
@@ -37,8 +38,16 @@ interface MatchCardProps extends FirestoreMatchCard {
 }
 
 const useStyles = makeStyles((theme) => ({
+  logoImage: {
+    width: 42,
+    marginLeft: 16,
+    marginTop: 10,
+    position: "absolute",
+    zIndex: 1
+  },
   matchCard: {
     padding: 20,
+    minHeight: "calc(100vh - 56px)",
   },
   gridList: {
     width: 500,
@@ -49,7 +58,6 @@ const useStyles = makeStyles((theme) => ({
     flexWrap: "wrap",
     overflow: "hidden",
     justifyContent: "space-around",
-    backgroundColor: theme.palette.background.paper,
   },
   featuredImgCard: {
     position: "relative",
@@ -61,7 +69,7 @@ const useStyles = makeStyles((theme) => ({
   featuredImg: {
     width: "100%",
     display: "block",
-    zIndex: -1
+    zIndex: -1,
   },
   matchBar: {
     padding: "10px 10px",
@@ -73,26 +81,40 @@ const useStyles = makeStyles((theme) => ({
     position: "absolute",
     bottom: 0,
     left: 0,
-    filter: "drop-shadow(0 0 5px rgba(0, 0, 0, 0.3))",
-    color: theme.palette.primary.contrastText
+    filter: "drop-shadow(0 0 3px rgba(0, 0, 0, 0.5))",
+    color: theme.palette.primary.contrastText,
   },
   matchTile: {
     "& .MuiGridListTile-tile": {
       borderRadius: 5,
       overflow: "hidden",
-    }
+    },
   },
   matchTileImage: {
     display: "block",
     width: "100%",
   },
   favorite: {
-    width: 100
-  }
-  
+    width: 100,
+  },
+  saveAnimation: {
+    animation: "$hanger-save-animation 400ms linear 1",
+    transformOrigin: "top center",
+  },
+  "@keyframes hanger-save-animation": {
+    "0%, 100%": {
+      transform: "rotate(0deg)",
+    },
+    "25%, 75%": {
+      transform: "rotate(-15deg)",
+    },
+    "50%": {
+      transform: "rotate(15deg)",
+    },
+  },
 }));
 
-const ClosetImage = ({url}: { url: string}) => {
+const ClosetImage = ({ url }: { url: string }) => {
   const classes = useStyles();
   const [thumbUrl, setThumbUrl] = React.useState<string>("");
 
@@ -101,44 +123,65 @@ const ClosetImage = ({url}: { url: string}) => {
       setThumbUrl(thumbUrl);
     });
   }, [url]);
-  
-  return (
-    thumbUrl.length ? 
-    <img 
+
+  return thumbUrl.length ? (
+    <img
       className={classes.matchTileImage}
       key={url}
       alt="match"
       src={thumbUrl}
-    /> : <CircularProgress />
+    />
+  ) : (
+    <CircularProgress />
   );
-
-}
-
+};
+declare const window: any;
 const MatchCard = (props: MatchCardProps) => {
-
+  const [fbFtImage, setFbFtImage] = React.useState<string>("");
   const classes = useStyles();
 
+  useEffect(() => {
+    /* First, get the (smol) image url from Firebase */
+    toFbThumbUrl(props.srcUrl).then((url) => {
+      setFbFtImage(url || "");
+    });
+  }, [props.srcUrl]);
+
+  const { data, loading, error } = useColor(fbFtImage, "hex", {
+    crossOrigin: "Anonymous",
+  });
   return (
-    <div className={classes.matchCard}>
-      <div className={classes.featuredImgCard}>
-        <img className={classes.featuredImg} alt="featured style" src={props.srcUrl}/>
+    <div
+      className={classes.matchCard}
+      style={{ backgroundColor: loading || error ? "0" : data }}
+    >
+      <div className={classes.featuredImgCard} >
+        <Ailogo className={classes.logoImage}></Ailogo>
+        <img
+          className={classes.featuredImg}
+          alt="featured style"
+          src={props.srcUrl}
+        />
         <div className={classes.matchBar}>
           <Typography variant="h6">
             {props.matches.length} Matches found!
           </Typography>
           <div className={classes.favorite} onClick={props.toggleSavedFn}>
-            <SvgIcon htmlColor={props.favorite ? "#eddd09" : ""}>
-              <Hanger />
-            </SvgIcon>
-            <Typography>{props.favorite ? "Saved" : "Save look"}</Typography>
+            <SvgIcon
+              viewBox="0 0 100 64.941"
+              className={props.favorite ? classes.saveAnimation : ""}
+              htmlColor={props.favorite ? "#eddd09" : ""}
+              component={Hanger}
+            ></SvgIcon>
+            <Typography>{props.favorite ? "Saved!" : "Save look"}</Typography>
           </div>
         </div>
       </div>
       <div className={classes.closetContainer}>
         <GridList spacing={10} cellHeight={180} className={classes.gridList}>
           {props.matches.map((match, i) => (
-            <GridListTile className={classes.matchTile}>
-              <ClosetImage url={match.imageUrl}/>
+            <GridListTile key={match.imageUrl} className={classes.matchTile}>
+              <ClosetImage url={match.imageUrl} />
             </GridListTile>
           ))}
         </GridList>
@@ -147,22 +190,22 @@ const MatchCard = (props: MatchCardProps) => {
   );
 };
 
-export const MatchScreen = ({ userid }: { userid: string}) => {
-
+export const MatchScreen = ({ userid }: { userid: string }) => {
   const [pages, setPages] = useState<FirestoreMatchCard[]>([]);
-  const [favorites, setFavorites] = useState<{[key: string]: boolean}>({});
+  const [favorites, setFavorites] = useState<{ [key: string]: boolean }>({});
 
   const toggleSavedFn = (srcId: string) => {
-    setFavorites({...favorites, [srcId]: !favorites[srcId]});
-  }
+    setFavorites({ ...favorites, [srcId]: !favorites[srcId] });
+  };
 
   useEffect(() => {
     let pages = db
       .collection("users")
       .doc(userid)
-      .collection("outfits")
-      .orderBy("score", "desc")
-      .limit(10);
+      .collection("outfitsv5")
+      .orderBy("daleScore", "asc")
+      // .orderBy("score2", "desc")
+      .limit(30);
     let matchCards: FirestoreMatchCard[] = [];
     pages.get().then((snapshot) => {
       snapshot.forEach((doc) => {
@@ -178,17 +221,15 @@ export const MatchScreen = ({ userid }: { userid: string}) => {
     <div>
       {thisPage ? (
         <SwipeableViews enableMouseEvents>
-            {
-                pages.map((page, i) => (
-                    <MatchCard
-                    key={page.srcId}
-                    source="closet"
-                    favorite={favorites[page.srcId] as boolean}
-                    toggleSavedFn={() => toggleSavedFn(page.srcId)}
-                    {...page}
-                    />
-                ))
-            }
+          {pages.map((page, i) => (
+            <MatchCard
+              key={page.srcId}
+              source="closet"
+              favorite={favorites[page.srcId] as boolean}
+              toggleSavedFn={() => toggleSavedFn(page.srcId)}
+              {...page}
+            />
+          ))}
         </SwipeableViews>
       ) : (
         <CircularProgress />

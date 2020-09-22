@@ -22,7 +22,8 @@ const useStyles = makeStyles((theme) => ({
   },
   thisScreen: {
     flex: "1",
-    overflow: "auto"
+    overflow: "auto",
+    paddingBottom: 56,
   },
   bottomNav: {
     position: "fixed",
