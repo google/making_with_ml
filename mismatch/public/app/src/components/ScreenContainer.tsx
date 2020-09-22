@@ -15,7 +15,7 @@ import { MenuScreen } from "./MenuScreen";
 const useStyles = makeStyles((theme) => ({
   appBar: {},
   root: {
-    width: "100vw",
+    maxWidth: "500px",
     height: "100vh",
     display: "flex",
     flexDirection: "column",
@@ -32,18 +32,6 @@ const useStyles = makeStyles((theme) => ({
   },
   menuButton: {
     marginRight: theme.spacing(2),
-  },
-  title: {
-    display: "flex",
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingRight: 64,
-    color: theme.palette.primary.main,
-  },
-  logo: {
-    height: 35,
-    marginRight: 5,
   },
 }));
 

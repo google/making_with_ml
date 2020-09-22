@@ -13,7 +13,6 @@ import { ReactComponent as Hanger } from "../hanger.svg";
 import GridList from "@material-ui/core/GridList";
 import SwipeableViews from "react-swipeable-views";
 import { useColor } from "color-thief-react";
-import logo from "../logo.png";
 import { ReactComponent as Ailogo } from "../ailogo.svg";
 
 interface ProductMatch {
@@ -38,25 +37,19 @@ interface MatchCardProps extends FirestoreMatchCard {
 }
 
 const useStyles = makeStyles((theme) => ({
-  logoImage: {
-    width: 42,
-    marginLeft: 16,
-    marginTop: 10,
-    position: "absolute",
-    zIndex: 1
-  },
   matchCard: {
     padding: 20,
-    minHeight: "calc(100vh - 56px)",
   },
   gridList: {
-    width: 500,
+    flexWrap: "nowrap",
+    // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
+    transform: "translateZ(0)",
   },
   closetContainer: {
     width: "100%",
     display: "flex",
     flexWrap: "wrap",
-    overflow: "hidden",
+    overflow: "auto",
     justifyContent: "space-around",
   },
   featuredImgCard: {
@@ -90,10 +83,7 @@ const useStyles = makeStyles((theme) => ({
       overflow: "hidden",
     },
   },
-  matchTileImage: {
-    display: "block",
-    width: "100%",
-  },
+  matchTileImage: {},
   favorite: {
     width: 100,
   },
@@ -114,7 +104,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ClosetImage = ({ url }: { url: string }) => {
+const ClosetImage = ({ url, style }: { url: string, style?: any }) => {
   const classes = useStyles();
   const [thumbUrl, setThumbUrl] = React.useState<string>("");
 
@@ -124,18 +114,22 @@ const ClosetImage = ({ url }: { url: string }) => {
     });
   }, [url]);
 
-  return thumbUrl.length ? (
-    <img
-      className={classes.matchTileImage}
-      key={url}
-      alt="match"
-      src={thumbUrl}
-    />
-  ) : (
-    <CircularProgress />
+  return (
+    <GridListTile key={url} className={classes.matchTile} style={style}>
+      {thumbUrl.length ? (
+        <img
+          className={classes.matchTileImage}
+          key={url}
+          alt="match"
+          src={thumbUrl}
+        />
+      ) : (
+        <CircularProgress />
+      )}
+    </GridListTile>
   );
 };
-declare const window: any;
+
 const MatchCard = (props: MatchCardProps) => {
   const [fbFtImage, setFbFtImage] = React.useState<string>("");
   const classes = useStyles();
@@ -155,8 +149,7 @@ const MatchCard = (props: MatchCardProps) => {
       className={classes.matchCard}
       style={{ backgroundColor: loading || error ? "0" : data }}
     >
-      <div className={classes.featuredImgCard} >
-        <Ailogo className={classes.logoImage}></Ailogo>
+      <div className={classes.featuredImgCard}>
         <img
           className={classes.featuredImg}
           alt="featured style"
@@ -178,11 +171,14 @@ const MatchCard = (props: MatchCardProps) => {
         </div>
       </div>
       <div className={classes.closetContainer}>
-        <GridList spacing={10} cellHeight={180} className={classes.gridList}>
+        <GridList
+          spacing={10}
+          cellHeight={180}
+          cols={props.matches.length > 2 ? 2.5 : 2}
+          className={classes.gridList}
+        >
           {props.matches.map((match, i) => (
-            <GridListTile key={match.imageUrl} className={classes.matchTile}>
-              <ClosetImage url={match.imageUrl} />
-            </GridListTile>
+            <ClosetImage url={match.imageUrl} />
           ))}
         </GridList>
       </div>
