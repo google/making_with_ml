@@ -9,6 +9,7 @@ import {
   GridListTile,
   SvgIcon,
 } from "@material-ui/core";
+import CameraAltIcon from '@material-ui/icons/CameraAlt';
 import { ReactComponent as Hanger } from "../hanger.svg";
 import GridList from "@material-ui/core/GridList";
 import SwipeableViews from "react-swipeable-views";
@@ -64,6 +65,22 @@ const useStyles = makeStyles((theme) => ({
     overflow: "hidden",
     boxShadow: theme.shadows[4],
     marginBottom: 10,
+  },
+  socialTag: {
+    position: "absolute",
+    display: "flex",
+    alignItems: "center",
+    zIndex: 1,
+    paddingLeft: 17,
+    paddingTop: 10,
+    color: theme.palette.primary.contrastText,
+    fontSize: 16,
+    fontWeight: 500,
+    letterSpacing: 0.8,
+    filter: "drop-shadow(0 0 2px rgba(0, 0, 0, 0.8))",
+    "& .MuiSvgIcon-root": {
+      marginRight: 5
+    },
   },
   featuredImg: {
     width: "100%",
@@ -164,6 +181,10 @@ const MatchCard = (props: MatchCardProps) => {
       className={classes.matchCard}
       style={{ backgroundColor: loading || error ? "0" : data }}
     >
+      <div className={classes.socialTag}>
+        <CameraAltIcon />
+        <Typography variant="subtitle1">@codergirl_</Typography>
+      </div>
       <div className={classes.featuredImgCard}>
         <img
           className={classes.featuredImg}
