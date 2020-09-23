@@ -16,12 +16,11 @@ const useStyles = makeStyles((theme) => ({
   appBar: {},
   root: {
     maxWidth: "500px",
-    height: "100vh",
-    display: "flex",
     flexDirection: "column",
+    display: "flex",
   },
   thisScreen: {
-    flex: "1",
+    flex: 1,
     overflow: "auto",
     paddingBottom: 56,
   },
