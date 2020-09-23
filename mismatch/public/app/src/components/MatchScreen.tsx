@@ -13,7 +13,6 @@ import { ReactComponent as Hanger } from "../hanger.svg";
 import GridList from "@material-ui/core/GridList";
 import SwipeableViews from "react-swipeable-views";
 import { useColor } from "color-thief-react";
-import { ReactComponent as Ailogo } from "../ailogo.svg";
 
 interface ProductMatch {
   image: string;
@@ -39,6 +38,13 @@ interface MatchCardProps extends FirestoreMatchCard {
 const useStyles = makeStyles((theme) => ({
   matchCard: {
     padding: 20,
+    transition: "background-color 200ms ease",
+  },
+  screenSpinner: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100vh",
   },
   gridList: {
     flexWrap: "nowrap",
@@ -65,17 +71,23 @@ const useStyles = makeStyles((theme) => ({
     zIndex: -1,
   },
   matchBar: {
-    padding: "10px 10px",
+    padding: 15,
     width: "100%",
     textAlign: "center",
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-end",
     position: "absolute",
     bottom: 0,
     left: 0,
-    filter: "drop-shadow(0 0 3px rgba(0, 0, 0, 0.5))",
+    filter: "drop-shadow(0 0 2px rgba(0, 0, 0, 0.8))",
     color: theme.palette.primary.contrastText,
+
+    "& .MuiTypography-root": {
+      fontSize: 16,
+      fontWeight: 500,
+      letterSpacing: 0.8,
+    },
   },
   matchTile: {
     "& .MuiGridListTile-tile": {
@@ -85,7 +97,9 @@ const useStyles = makeStyles((theme) => ({
   },
   matchTileImage: {},
   favorite: {
-    width: 100,
+    "& .MuiSvgIcon-root": {
+      fontSize: 36,
+    },
   },
   saveAnimation: {
     animation: "$hanger-save-animation 400ms linear 1",
@@ -122,6 +136,7 @@ const ClosetImage = ({ url, style }: { url: string, style?: any }) => {
           key={url}
           alt="match"
           src={thumbUrl}
+          draggable={false}
         />
       ) : (
         <CircularProgress />
@@ -154,9 +169,10 @@ const MatchCard = (props: MatchCardProps) => {
           className={classes.featuredImg}
           alt="featured style"
           src={props.srcUrl}
+          draggable={false}
         />
         <div className={classes.matchBar}>
-          <Typography variant="h6">
+          <Typography variant="subtitle1">
             {props.matches.length} Matches found!
           </Typography>
           <div className={classes.favorite} onClick={props.toggleSavedFn}>
@@ -166,7 +182,7 @@ const MatchCard = (props: MatchCardProps) => {
               htmlColor={props.favorite ? "#eddd09" : ""}
               component={Hanger}
             ></SvgIcon>
-            <Typography>{props.favorite ? "Saved!" : "Save look"}</Typography>
+            <Typography variant="subtitle1">{props.favorite ? "Saved!" : "Save look"}</Typography>
           </div>
         </div>
       </div>
@@ -187,6 +203,7 @@ const MatchCard = (props: MatchCardProps) => {
 };
 
 export const MatchScreen = ({ userid }: { userid: string }) => {
+  const classes = useStyles()
   const [pages, setPages] = useState<FirestoreMatchCard[]>([]);
   const [favorites, setFavorites] = useState<{ [key: string]: boolean }>({});
 
@@ -228,7 +245,9 @@ export const MatchScreen = ({ userid }: { userid: string }) => {
           ))}
         </SwipeableViews>
       ) : (
+        <div className={classes.screenSpinner}>
         <CircularProgress />
+        </div>
       )}
     </div>
   );

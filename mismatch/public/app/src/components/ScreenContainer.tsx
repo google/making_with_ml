@@ -1,4 +1,4 @@
-import React, {  } from "react";
+import React, { useEffect } from "react";
 import {
   BottomNavigationAction,
   BottomNavigation,
@@ -13,11 +13,29 @@ import { FavoriteBorderOutlined } from "@material-ui/icons";
 import { MenuScreen } from "./MenuScreen";
 
 const useStyles = makeStyles((theme) => ({
+  "@global": {
+    body: {
+      background: "#FAFAFA",
+    },
+  },
   appBar: {},
   root: {
-    maxWidth: "500px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100vh",
+  },
+  innerRoot: {
     flexDirection: "column",
     display: "flex",
+    position: "relative",
+    maxWidth: 460,
+    maxHeight: 800,
+    width: "100%",
+    height: "100%",
+    background: "#FFF",
+    boxShadow: theme.shadows[4],
+    overflow: "hidden",
   },
   thisScreen: {
     flex: 1,
@@ -25,9 +43,10 @@ const useStyles = makeStyles((theme) => ({
     paddingBottom: 56,
   },
   bottomNav: {
-    position: "fixed",
+    position: "absolute",
     width: "100%",
-    bottom: 0
+    bottom: 0,
+    left: 0,
   },
   menuButton: {
     marginRight: theme.spacing(2),
@@ -40,48 +59,66 @@ interface ScreenContainerProps {
 
 export const ScreenContainer = (props: ScreenContainerProps) => {
   const [currentScreen, setCurrentScreen] = React.useState(0);
+  const [windowHeight, setWindowHeight] = React.useState(0);
+
+  useEffect(() => {
+    const getWindowHeight = () => {
+      setWindowHeight(window.innerHeight)
+    }
+    getWindowHeight()
+
+    window.addEventListener("resize", getWindowHeight)
+    window.addEventListener("orientationchange", getWindowHeight)
+
+    return () => {
+      window.removeEventListener("resize", getWindowHeight)
+      window.removeEventListener("orientationchange", getWindowHeight)
+    }
+  }, [])
 
   const classes = useStyles();
   return (
-    <div className={classes.root}>
-      <div className={classes.thisScreen}>
-        {
-          [
-            <MatchScreen userid={props.userid} />,
-            <ClosetScreen userid={props.userid} />,
-            <MenuScreen userid={props.userid} />
-          ][currentScreen]
-        }
+    <div className={classes.root} style={{ height: windowHeight }}>
+      <div className={classes.innerRoot}>
+        <div className={classes.thisScreen}>
+          {
+            [
+              <MatchScreen userid={props.userid} />,
+              <ClosetScreen userid={props.userid} />,
+              <MenuScreen userid={props.userid} />,
+            ][currentScreen]
+          }
+        </div>
+        <BottomNavigation
+          showLabels
+          className={classes.bottomNav}
+          value={currentScreen}
+          onChange={(_, newValue) => {
+            setCurrentScreen(newValue);
+          }}
+        >
+          <BottomNavigationAction
+            label="Matches"
+            icon={<FavoriteBorderOutlined />}
+          ></BottomNavigationAction>
+          <BottomNavigationAction
+            label="Closet"
+            icon={
+              <SvgIcon>
+                <Hanger />
+              </SvgIcon>
+            }
+          ></BottomNavigationAction>
+          <BottomNavigationAction
+            label="Settings"
+            icon={
+              <SvgIcon>
+                <SettingsSvg />
+              </SvgIcon>
+            }
+          ></BottomNavigationAction>
+        </BottomNavigation>
       </div>
-      <BottomNavigation
-        showLabels
-        className={classes.bottomNav}
-        value={currentScreen}
-        onChange={(_, newValue) => {
-          setCurrentScreen(newValue);
-        }}
-      >
-        <BottomNavigationAction
-          label="Matches"
-          icon={<FavoriteBorderOutlined />}
-        ></BottomNavigationAction>
-        <BottomNavigationAction
-          label="Closet"
-          icon={
-            <SvgIcon>
-              <Hanger />
-            </SvgIcon>
-          }
-        ></BottomNavigationAction>
-        <BottomNavigationAction
-          label="Settings"
-          icon={
-            <SvgIcon>
-              <SettingsSvg />
-            </SvgIcon>
-          }
-        ></BottomNavigationAction>
-      </BottomNavigation>
     </div>
   );
 };
