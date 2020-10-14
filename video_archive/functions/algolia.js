@@ -55,7 +55,7 @@ exports.search = async function(query, userid) {
       process.env.ALGOLIA_APPID,
       process.env.ALGOLIA_ADMIN_APIKEY,
   );
-  const index = client.initIndex(process.env.ALOGLIA_INDEX);
+  const index = client.initIndex(process.env.ALGOLIA_INDEX);
   const res = await index.search(query, {
     tagFilters: [userid],
     attributesToRetrieve: ['videoId', 'transcript', 'text', 'entity', '_tags'],
@@ -94,7 +94,7 @@ exports.save = async function(
       process.env.ALGOLIA_APPID,
       process.env.ALGOLIA_ADMIN_APIKEY,
   );
-  const index = client.initIndex(process.env.ALOGLIA_INDEX);
+  const index = client.initIndex(process.env.ALGOLIA_INDEX);
   console.log(
       `Createtd algolia index client for index ${process.env.ALOGLIA_INDEX}`,
   );
