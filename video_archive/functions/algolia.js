@@ -94,7 +94,7 @@ exports.save = async function(
       process.env.ALGOLIA_APPID,
       process.env.ALGOLIA_ADMIN_APIKEY,
   );
-  const index = client.initIndex(process.env.ALOGLIA_INDEX);
+  const index = client.initIndex(process.env.ALGOLIA_INDEX);
   console.log(
       `Createtd algolia index client for index ${process.env.ALOGLIA_INDEX}`,
   );
