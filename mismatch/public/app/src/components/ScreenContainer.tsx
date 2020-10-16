@@ -4,11 +4,12 @@ import {
   BottomNavigation,
   SvgIcon,
 } from "@material-ui/core";
+import TuneIcon from '@material-ui/icons/Tune';
 import { makeStyles } from "@material-ui/core/styles";
 import { MatchScreen } from "./MatchScreen";
 import { ClosetScreen } from "./ClosetScreen";
 import { ReactComponent as Hanger } from "../hanger.svg";
-import { ReactComponent as SettingsSvg } from "../settings_icon.svg";
+// import { ReactComponent as SettingsSvg } from "../settings.svg";
 import { FavoriteBorderOutlined } from "@material-ui/icons";
 import { MenuScreen } from "./MenuScreen";
 
@@ -63,18 +64,18 @@ export const ScreenContainer = (props: ScreenContainerProps) => {
 
   useEffect(() => {
     const getWindowHeight = () => {
-      setWindowHeight(window.innerHeight)
-    }
-    getWindowHeight()
+      setWindowHeight(window.innerHeight);
+    };
+    getWindowHeight();
 
-    window.addEventListener("resize", getWindowHeight)
-    window.addEventListener("orientationchange", getWindowHeight)
+    window.addEventListener("resize", getWindowHeight);
+    window.addEventListener("orientationchange", getWindowHeight);
 
     return () => {
-      window.removeEventListener("resize", getWindowHeight)
-      window.removeEventListener("orientationchange", getWindowHeight)
-    }
-  }, [])
+      window.removeEventListener("resize", getWindowHeight);
+      window.removeEventListener("orientationchange", getWindowHeight);
+    };
+  }, []);
 
   const classes = useStyles();
   return (
@@ -111,11 +112,7 @@ export const ScreenContainer = (props: ScreenContainerProps) => {
           ></BottomNavigationAction>
           <BottomNavigationAction
             label="Settings"
-            icon={
-              <SvgIcon>
-                <SettingsSvg />
-              </SvgIcon>
-            }
+            icon={<TuneIcon />}
           ></BottomNavigationAction>
         </BottomNavigation>
       </div>
