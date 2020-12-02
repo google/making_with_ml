@@ -9,6 +9,7 @@
 .history
 .svn/
 .metadata
+graveyard
 
 # Env
 .env
