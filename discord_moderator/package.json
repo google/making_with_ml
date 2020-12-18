@@ -2,7 +2,7 @@
   "name": "discord_karma",
   "version": "1.0.0",
   "description": "Discord bot that keeps track of user karma based on the language they use",
-  "main": "index.js",
+  "main": "discord.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
