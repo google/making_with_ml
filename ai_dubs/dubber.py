@@ -17,36 +17,47 @@ from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech
 from google.cloud import translate_v2 as translate
 from google.cloud import storage
+from pydub import AudioSegment
+from moviepy.editor import VideoFileClip, AudioFileClip
 import os
 import ffmpeg
 import time
 import json
 import sys
+import tempfile
+import uuid
+from dotenv import load_dotenv
+import fire
 
-from IPython import embed
+# Load config in .env file
+load_dotenv()
 
 # This function comes from https://github.com/kkroening/ffmpeg-python/blob/master/examples/transcribe.py
-def decode_audio(fileName):
-    """Extracts audio from a video file
+# def decode_audio(fileName):
+#     """Extracts audio from a video file
 
-    Args:
-        fileName (String): Path to video file
+#     Args:
+#         fileName (String): Path to video file
 
-    Returns:
-        Blob: audio blob | Error
-    """
-    try:
-        out, err = (ffmpeg
-                    .input(fileName)
-                    .output('-', format='s16le', acodec='pcm_s16le', ac=1, ar='16k')
-                    .overwrite_output()
-                    .run(capture_stdout=True, capture_stderr=True)
-                    )
-    except ffmpeg.Error as e:
-        print(e.stderr, file=sys.stderr)
-        sys.exit(1)
-    return out
+#     Returns:
+#         Blob: audio blob | Error
+#     """
+#     try:
+#         out, err = (ffmpeg
+#                     .input(fileName)
+#                     .output('-', format='s16le', acodec='pcm_s16le', ac=1, ar='16k')
+#                     .overwrite_output()
+#                     .run(capture_stdout=True, capture_stderr=True)
+#                     )
+#     except ffmpeg.Error as e:
+#         print(e.stderr, file=sys.stderr)
+#         sys.exit(1)
+#     return out
 
+def decode_audio(inFile, outFile):
+    if not outFile[-4:] != "wav":
+        outFile += ".wav"
+    AudioSegment.from_file(inFile).set_channels(1).export(outFile, format="wav")
 
 def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=None):
     """Transcribes audio files.
@@ -55,7 +66,7 @@ def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=None):
         gcsPath (String): path to file in cloud storage (i.e. "gs://audio/clip.mp4")
         langCode (String): language code (i.e. "en-US", see https://cloud.google.com/speech-to-text/docs/languages)
         phraseHints (String[]): list of words that are unusual but likely to appear in the audio file.
-        speakerCount (int, optional): Number of speakers in the audio. Defaults to None.
+        speakerCount (int, optional): Number of speakers in the audio. Only works on English. Defaults to None.
 
     Returns:
         list | Operation.error
@@ -81,37 +92,16 @@ def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=None):
 
     client = speech.SpeechClient()
     audio = speech.RecognitionAudio(uri=gcsPath)
-    try:
-        config = speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            sample_rate_hertz=16000,
-            enable_automatic_punctuation=True,
-            enable_word_time_offsets=True,
-            enable_speaker_diarization=True if speakerCount else False,
-            diarization_speaker_count=speakerCount,
-            language_code=langCode,
-            use_enhanced=True,
-            model="video",  # Optimize for audio pulled from videos
-            speech_contexts=[{
-                "phrases": phraseHints
-            }]
-        )
-        res = client.long_running_recognize(config=config, audio=audio).result()
-    except:
-        # Video model isn't supported for all languages, so try again if this fails
-        config = speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            sample_rate_hertz=16000,
-            enable_automatic_punctuation=True,
-            enable_word_time_offsets=True,
-            enable_speaker_diarization=True if speakerCount else False,
-            diarization_speaker_count=speakerCount,
-            language_code=langCode,
-            speech_contexts=[{
-                "phrases": phraseHints
-            }]
-        )
-        res = client.long_running_recognize(config=config, audio=audio).result()
+
+    config = speech.RecognitionConfig(
+        enable_automatic_punctuation=True,
+        enable_word_time_offsets=True,
+        language_code=langCode,
+        speech_contexts=[{
+            "phrases": phraseHints
+        }]
+    )
+    res = client.long_running_recognize(config=config, audio=audio).result()
 
     return _jsonify(res)
 
@@ -195,7 +185,7 @@ def speak(text, languageCode):
         languageCode (String): Language (i.e. "en")
 
     Returns:
-        bytes : Audio in mp3 format
+        bytes : Audio in wav format
     """
 
     # Instantiates a client
@@ -271,56 +261,115 @@ def to_srt(chunks, start_times, end_times, outfile):
         return '\n'.join(out)
     pass
 
-def main():
-    videoPath = "./ai_coach.mov"
-    projectId = "ai-dubs"
-    gcsBucket = "ai_dubs_videos"
-    # Language code from https://cloud.google.com/speech-to-text/docs/languages
-    srcLang = "fi"
-    dstLang = "en"
-    phraseHints = ["training data"]
 
-    base = os.path.split(videoPath)[-1].split('.')[0]
-
-    # print("Decoding audio")
-    # audio = decode_audio(videoPath)
-    # # with open(audio_path, 'wb') as f:
-    # #     f.write(audio)
-
-    # storage_client = storage.Client(project=projectId)
-    # bucket = storage_client.bucket(gcsBucket)
-    # blobName = base + ".wav"
-
-    # print(f"Uploading file to gs://{gcsBucket}/{blobName}")
-    # blob = bucket.blob(blobName)
-    # blob.upload_from_string(audio, content_type="audio/wav")
+def stitch_audio(sentences, audioDir, movieFile, outFile, overlayGain=-18):
     
-    # print("Transcribing")
-    # transcripts = get_transcripts_json(os.path.join("gs://", gcsBucket, blobName), srcLang, phraseHints=phraseHints)
+    # Files in the audioDir should be labeled 0.wav, 1.wav, etc.
+    audioFiles = os.listdir(audioDir)
+    audioFiles.sort()
+    
+    # Grab the computer-generated audio file
+    segments = [AudioSegment.from_mp3(os.path.join(audioDir, x)) for x in audioFiles]
+    # Also, grab the original audio
+    dubbed = AudioSegment.from_file(movieFile)
 
-    # print("Grouping transcripts by sentence")
-    # sentences = parse_sentence_with_speaker(transcripts)
+    # Place each computer-generated audio at the correct timestamp
+    for sentence, segment in zip(sentences, segments):
+        dubbed = dubbed.overlay(segment, position = sentence['start_time'] * 1000, gain_during_overlay=overlayGain)
+    # Write the final audio to a temporary output file
+    audioFile = tempfile.NamedTemporaryFile()
+    dubbed.export(audioFile)
+    
+    # Add the new audio to the video and save it
+    clip = VideoFileClip(movieFile)
+    audio = AudioFileClip(audioFile.name)
+    clip = clip.set_audio(audio)
+    
+    clip.write_videofile(outFile, codec='libx264', audio_codec='aac')
+    audioFile.close()
 
-    # print("Translating")
-    # for sentence in sentences:
-    #     sentence[dstLang] = translate_text(sentence['sentence'], dstLang)
 
-    # print("Dumping file to json")
-    # with open(base + '.json', 'w') as f:
-    #     json.dump(sentences, f)
+def dub(videoFile, outputDir, srcLang, targetLangs = [], storageBucket=None, phraseHints = [], dubSrc=False):
 
-    with open(base + '.json') as f:
-        sentences = json.load(f)
+    baseName = os.path.split(videoFile)[-1].split('.')[0]
 
-    audioTmpDir = './audio_tmp'
-    os.mkdir(audioTmpDir)
+    if not os.path.exists(outputDir):
+        os.mkdir(outputDir)
+    
+    outputFiles = os.listdir(outputDir)
+    
+    if not f"{baseName}.wav" in outputFiles:
+        print("Extracting audio from video")
+        fn = os.path.join(outputDir, baseName + ".wav")
+        decode_audio(videoFile, fn)
+        print(f"Wrote {fn}")
 
-    print("Generating audio...")
-    for i, sentence in enumerate(sentences):
-        print(i)
-        audio = speak(sentence[dstLang], dstLang)
-        with open(os.path.join(audioTmpDir, f"{i}.mp3"), 'wb') as f:
-            f.write(audio)
+    if not f"{baseName}.json" in outputFiles:
+        storageBucket = storageBucket if storageBucket else os.environ['STORAGE_BUCKET']
+        if not storageBucket:
+            raise Exception("Specify variable STORAGE_BUCKET in .env or as an arg")
+
+        print("Transcribing audio")
+        print("Uploading to the cloud...")
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(storageBucket)
+
+        tmpFile = os.path.join("tmp", str(uuid.uuid4()) + ".wav")
+        blob = bucket.blob(tmpFile)
+        blob.upload_from_filename(os.path.join(outputDir, baseName + ".wav"), content_type="audio/wav")
+
+        print("Transcribing...")
+        transcripts = get_transcripts_json(os.path.join("gs://", storageBucket, tmpFile), srcLang, phraseHints=phraseHints)
+        print(transcripts)
+        sentences = parse_sentence_with_speaker(transcripts)
+        fn = os.path.join(outputDir, baseName + ".json")
+        with open(fn, "w") as f:
+            json.dump(sentences, f)
+        print(f"Wrote {fn}")
+        print("Deleting cloud file...")
+        blob.delete()
+
+    sentences = json.load(open(os.path.join(outputDir, baseName + ".json")))
+    sentence = sentences[0]
+    for lang in targetLangs:
+        print(f"Translating to {lang}")
+        for sentence in sentences:
+            sentence[lang] = translate_text(sentence['sentence'], lang, srcLang)
+
+    # Write the translations to json
+    fn = os.path.join(outputDir, baseName + ".json")
+    with open(fn, "w") as f:
+        json.dump(sentences, f)
+        
+    audioDir = os.path.join(outputDir, "audioClips")
+    if not "audioClips" in outputFiles:
+        os.mkdir(audioDir)
+
+    # whether or not to also dub the source language
+    if dubSrc:
+        targetLangs + [srcLang]
+
+    for lang in targetLangs:
+        languageDir = os.path.join(audioDir, lang)
+        os.mkdir(languageDir)
+        print(f"Synthesizing audio for for {lang}")
+        for i, sentence in enumerate(sentences):
+            audio = speak(sentence[lang], lang)
+            with open(os.path.join(languageDir, f"{i}.mp3"), 'wb') as f:
+                f.write(audio)
+
+    dubbedDir = os.path.join(outputDir, "dubbedVideos")  
+    if not "dubbedVideos" in outputFiles:
+        os.mkdir(dubbedDir)
+    
+    for lang in targetLangs:
+        print(f"Dubbing audio for {lang}")
+        outFile = os.path.join(dubbedDir, lang + ".mp4")
+        stitch_audio(sentences, os.path.join(audioDir, lang), videoFile, outFile)
+    
+    print("Done")
+
+
 
 if __name__ == "__main__":
-    main()
+    fire.Fire(dub)
