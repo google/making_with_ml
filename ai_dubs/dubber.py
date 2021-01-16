@@ -20,6 +20,7 @@ from google.cloud import storage
 from pydub import AudioSegment
 from moviepy.editor import VideoFileClip, AudioFileClip
 import os
+import shutil
 import ffmpeg
 import time
 import json
@@ -28,6 +29,7 @@ import tempfile
 import uuid
 from dotenv import load_dotenv
 import fire
+import html
 
 # Load config in .env file
 load_dotenv()
@@ -54,12 +56,15 @@ load_dotenv()
 #         sys.exit(1)
 #     return out
 
+
 def decode_audio(inFile, outFile):
     if not outFile[-4:] != "wav":
         outFile += ".wav"
-    AudioSegment.from_file(inFile).set_channels(1).export(outFile, format="wav")
+    AudioSegment.from_file(inFile).set_channels(
+        1).export(outFile, format="wav")
 
-def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=None):
+
+def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=1, enhancedModel=None):
     """Transcribes audio files.
 
     Args:
@@ -93,20 +98,85 @@ def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=None):
     client = speech.SpeechClient()
     audio = speech.RecognitionAudio(uri=gcsPath)
 
+    diarize = speakerCount if speakerCount > 1 else False
+    print(f"Diarizing: {diarize}")
+    diarizationConfig = speech.SpeakerDiarizationConfig(
+        enable_speaker_diarization=speakerCount if speakerCount > 1 else False,
+    )
+
+    # In English only, we can use the optimized video model
+    if langCode == "en":
+        enhancedModel = "video"
+
     config = speech.RecognitionConfig(
         enable_automatic_punctuation=True,
         enable_word_time_offsets=True,
-        language_code=langCode,
+        language_code="en-US" if langCode == "en" else langCode, # necessary to use video model
         speech_contexts=[{
-            "phrases": phraseHints
-        }]
+            "phrases": phraseHints,
+            "boost": 15
+        }],
+        diarization_config=diarizationConfig,
+        profanity_filter=True,
+        use_enhanced= True if enhancedModel else False,
+        model="video" if enhancedModel else None
+
     )
     res = client.long_running_recognize(config=config, audio=audio).result()
 
     return _jsonify(res)
 
 
-def parse_sentence_with_speaker(json):
+# # NOTE: This only works for english, basically
+# def parse_sentence_with_speaker(json, lang):
+#     """Takes json from get_transcripts_json and breaks it into sentences
+#     spoken by a single person.
+
+#     Args:
+#         json (string[]): [{"transcript": "lalala", "words": [{"word": "la", "start_time": 20, "end_time": 21, "speaker_tag: 2}]}]
+
+#     Returns:
+#         string[]: [{"sentence": "lalala", "speaker": 1, "start_time": 20, "end_time": 21}]
+#     """
+
+#     punctuation = ['.', '!', '?']
+#     sentences = []
+#     sentence = {}
+#     for result in json:
+#         for word in result['words']:
+#             if not sentence:
+#                 sentence = {
+#                     lang: [word['word']],
+#                     'speaker': word['speaker_tag'],
+#                     'start_time': word['start_time'],
+#                     'end_time': word['end_time']
+#                 }
+#             # If we have a new speaker, save the sentence and create a new one:
+#             elif word['speaker_tag'] != sentence['speaker']:
+#                 sentence[lang] = ' '.join(sentence[lang])
+#                 sentences.append(sentence)
+#                 sentence = {
+#                     lang: [word['word']],
+#                     'speaker': word['speaker_tag'],
+#                     'start_time': word['start_time'],
+#                     'end_time': word['end_time']
+#                 }
+#             else:
+#                 sentence[lang].append(word['word'])
+#                 sentence['end_time'] = word['end_time']
+
+#             if word['word'][-1] in punctuation:
+#                 sentence[lang] = ' '.join(sentence[lang])
+#                 sentences.append(sentence)
+#                 sentence = {}
+#         if sentence:
+#             sentence[lang] = ' '.join(sentence[lang])
+#             sentences.append(sentence)
+#             sentence = {}
+
+#     return sentences
+
+def parse_sentence_with_speaker(json, lang):
     """Takes json from get_transcripts_json and breaks it into sentences
     spoken by a single person.
 
@@ -117,43 +187,49 @@ def parse_sentence_with_speaker(json):
         string[]: [{"sentence": "lalala", "speaker": 1, "start_time": 20, "end_time": 21}]
     """
 
-    punctuation = ['.', '!', '?']
+    # Deal with languages like ja
+    def get_word(word, lang):
+        if lang == "ja":
+            return word.split('|')[0]
+        return word
+
     sentences = []
     sentence = {}
     for result in json:
-        for word in result['words']:
+        for i, word in enumerate(result['words']):
+            wordText = get_word(word['word'], lang)
             if not sentence:
                 sentence = {
-                    'sentence': [word['word']],
+                    lang: [wordText],
                     'speaker': word['speaker_tag'],
                     'start_time': word['start_time'],
-                  'end_time': word['end_time']
+                    'end_time': word['end_time']
                 }
             # If we have a new speaker, save the sentence and create a new one:
             elif word['speaker_tag'] != sentence['speaker']:
-                sentence['sentence'] = ' '.join(sentence['sentence'])
+                sentence[lang] = ' '.join(sentence[lang])
                 sentences.append(sentence)
                 sentence = {
-                    'sentence': [word['word']],
+                    lang: [wordText],
                     'speaker': word['speaker_tag'],
                     'start_time': word['start_time'],
-                  'end_time': word['end_time']
+                    'end_time': word['end_time']
                 }
             else:
-                sentence['sentence'].append(word['word'])
+                sentence[lang].append(wordText)
                 sentence['end_time'] = word['end_time']
 
-            if word['word'][-1] in punctuation:
-                sentence['sentence'] = ' '.join(sentence['sentence'])
+            # If there's greater than a second gap, assume this is a new sentence
+            if i+1 < len(result['words']) and word['end_time'] < result['words'][i+1]['start_time']:
+                sentence[lang] = ' '.join(sentence[lang])
                 sentences.append(sentence)
                 sentence = {}
         if sentence:
-            sentence['sentence'] = ' '.join(sentence['sentence'])
+            sentence[lang] = ' '.join(sentence[lang])
             sentences.append(sentence)
             sentence = {}
 
     return sentences
-
 
 def translate_text(input, targetLang, sourceLang=None):
     """Translates from sourceLang to targetLang. If sourceLang is empty,
@@ -169,15 +245,13 @@ def translate_text(input, targetLang, sourceLang=None):
     """
 
     translate_client = translate.Client()
-    result = translate_client.translate(input, target_language=targetLang, source_language=sourceLang)
+    result = translate_client.translate(
+        input, target_language=targetLang, source_language=sourceLang)
 
-    def _replace_artifacts(text):
-        return text.replace("&#39;", "'")
-
-    return _replace_artifacts(result['translatedText'])
+    return html.unescape(result['translatedText'])
 
 
-def speak(text, languageCode):
+def speak(text, languageCode, voiceName=None, speakingRate=1):
     """Converts text to audio
 
     Args:
@@ -196,13 +270,19 @@ def speak(text, languageCode):
 
     # Build the voice request, select the language code ("en-US") and the ssml
     # voice gender ("neutral")
-    voice = texttospeech.VoiceSelectionParams(
-        language_code=languageCode, ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
-    )
+    if not voiceName:
+        voice = texttospeech.VoiceSelectionParams(
+            language_code=languageCode, ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
+        )
+    else:
+        voice = texttospeech.VoiceSelectionParams(
+            language_code=languageCode, name=voiceName
+        )
 
     # Select the type of audio file you want returned
     audio_config = texttospeech.AudioConfig(
-        audio_encoding=texttospeech.AudioEncoding.MP3
+        audio_encoding=texttospeech.AudioEncoding.MP3,
+        speaking_rate=speakingRate
     )
 
     # Perform the text-to-speech request on the text input with the selected
@@ -210,8 +290,35 @@ def speak(text, languageCode):
     response = client.synthesize_speech(
         input=synthesis_input, voice=voice, audio_config=audio_config
     )
+    
     return response.audio_content
 
+
+def speakUnderDuration(text, languageCode, durationSecs, voiceName=None):
+    baseAudio = speak(text, languageCode, voiceName=voiceName)
+    assert len(baseAudio)
+    f = tempfile.NamedTemporaryFile(mode="w+b")
+    f.write(baseAudio)
+    f.flush()
+    baseDuration = AudioSegment.from_mp3(f.name).duration_seconds
+    f.close()
+    ratio = baseDuration / durationSecs
+    
+    print(f"Desired duration {durationSecs} Base duration {baseDuration} Ratio {ratio}")
+    
+    # if the audio fits, return it
+    if ratio <= 1:
+        return baseAudio
+
+    # If the base audio is too long to fit in the segment...
+    
+    # round to one decimal point and go a little faster to be safe,
+    ratio = round(ratio, 1)
+    if ratio > 4:
+        print("Speeding up as fast as possible, at rate 4x")
+        ratio = 4
+    print(f"Speakign with ratio {ratio}")
+    return speak(text, languageCode, voiceName=voiceName, speakingRate=ratio)
 
 # TODO
 def to_srt(chunks, start_times, end_times, outfile):
@@ -262,42 +369,51 @@ def to_srt(chunks, start_times, end_times, outfile):
     pass
 
 
-def stitch_audio(sentences, audioDir, movieFile, outFile, overlayGain=-18):
-    
+def stitch_audio(sentences, audioDir, movieFile, outFile, overlayGain=-20):
+
     # Files in the audioDir should be labeled 0.wav, 1.wav, etc.
     audioFiles = os.listdir(audioDir)
     audioFiles.sort()
-    
+
     # Grab the computer-generated audio file
-    segments = [AudioSegment.from_mp3(os.path.join(audioDir, x)) for x in audioFiles]
+    segments = [AudioSegment.from_mp3(
+        os.path.join(audioDir, x)) for x in audioFiles]
     # Also, grab the original audio
     dubbed = AudioSegment.from_file(movieFile)
 
     # Place each computer-generated audio at the correct timestamp
     for sentence, segment in zip(sentences, segments):
-        dubbed = dubbed.overlay(segment, position = sentence['start_time'] * 1000, gain_during_overlay=overlayGain)
+        dubbed = dubbed.overlay(
+            segment, position=sentence['start_time'] * 1000, gain_during_overlay=overlayGain)
     # Write the final audio to a temporary output file
     audioFile = tempfile.NamedTemporaryFile()
     dubbed.export(audioFile)
+    audioFile.flush()
     
     # Add the new audio to the video and save it
     clip = VideoFileClip(movieFile)
     audio = AudioFileClip(audioFile.name)
     clip = clip.set_audio(audio)
-    
+
     clip.write_videofile(outFile, codec='libx264', audio_codec='aac')
     audioFile.close()
 
 
-def dub(videoFile, outputDir, srcLang, targetLangs = [], storageBucket=None, phraseHints = [], dubSrc=False):
+def dub(
+    videoFile, outputDir, srcLang, targetLangs=[], 
+    storageBucket=None, phraseHints=[], dubSrc=False, 
+    speakerCount=1, newDir=False):
 
     baseName = os.path.split(videoFile)[-1].split('.')[0]
 
+    if newDir:
+        shutil.rmtree(outputDir)
+
     if not os.path.exists(outputDir):
         os.mkdir(outputDir)
-    
+
     outputFiles = os.listdir(outputDir)
-    
+
     if not f"{baseName}.wav" in outputFiles:
         print("Extracting audio from video")
         fn = os.path.join(outputDir, baseName + ".wav")
@@ -307,7 +423,8 @@ def dub(videoFile, outputDir, srcLang, targetLangs = [], storageBucket=None, phr
     if not f"{baseName}.json" in outputFiles:
         storageBucket = storageBucket if storageBucket else os.environ['STORAGE_BUCKET']
         if not storageBucket:
-            raise Exception("Specify variable STORAGE_BUCKET in .env or as an arg")
+            raise Exception(
+                "Specify variable STORAGE_BUCKET in .env or as an arg")
 
         print("Transcribing audio")
         print("Uploading to the cloud...")
@@ -316,12 +433,17 @@ def dub(videoFile, outputDir, srcLang, targetLangs = [], storageBucket=None, phr
 
         tmpFile = os.path.join("tmp", str(uuid.uuid4()) + ".wav")
         blob = bucket.blob(tmpFile)
-        blob.upload_from_filename(os.path.join(outputDir, baseName + ".wav"), content_type="audio/wav")
+        blob.upload_from_filename(os.path.join(
+            outputDir, baseName + ".wav"), content_type="audio/wav")
 
         print("Transcribing...")
-        transcripts = get_transcripts_json(os.path.join("gs://", storageBucket, tmpFile), srcLang, phraseHints=phraseHints)
-        print(transcripts)
-        sentences = parse_sentence_with_speaker(transcripts)
+        transcripts = get_transcripts_json(os.path.join(
+            "gs://", storageBucket, tmpFile), srcLang, 
+            phraseHints=phraseHints, 
+            speakerCount=speakerCount)
+        json.dump(transcripts, open(os.path.join(outputDir, "transcript.json"), "w"))
+
+        sentences = parse_sentence_with_speaker(transcripts, srcLang)
         fn = os.path.join(outputDir, baseName + ".json")
         with open(fn, "w") as f:
             json.dump(sentences, f)
@@ -334,41 +456,41 @@ def dub(videoFile, outputDir, srcLang, targetLangs = [], storageBucket=None, phr
     for lang in targetLangs:
         print(f"Translating to {lang}")
         for sentence in sentences:
-            sentence[lang] = translate_text(sentence['sentence'], lang, srcLang)
+            sentence[lang] = translate_text(sentence[srcLang], lang, srcLang)
 
     # Write the translations to json
     fn = os.path.join(outputDir, baseName + ".json")
     with open(fn, "w") as f:
         json.dump(sentences, f)
-        
+
     audioDir = os.path.join(outputDir, "audioClips")
     if not "audioClips" in outputFiles:
         os.mkdir(audioDir)
 
     # whether or not to also dub the source language
     if dubSrc:
-        targetLangs + [srcLang]
+        targetLangs += [srcLang]
 
     for lang in targetLangs:
         languageDir = os.path.join(audioDir, lang)
         os.mkdir(languageDir)
-        print(f"Synthesizing audio for for {lang}")
+        print(f"Synthesizing audio for {lang}")
         for i, sentence in enumerate(sentences):
-            audio = speak(sentence[lang], lang)
+            audio = speakUnderDuration(sentence[lang], lang, sentence['end_time'] - sentence['start_time'])
             with open(os.path.join(languageDir, f"{i}.mp3"), 'wb') as f:
                 f.write(audio)
 
-    dubbedDir = os.path.join(outputDir, "dubbedVideos")  
+    dubbedDir = os.path.join(outputDir, "dubbedVideos")
     if not "dubbedVideos" in outputFiles:
         os.mkdir(dubbedDir)
-    
+
     for lang in targetLangs:
         print(f"Dubbing audio for {lang}")
         outFile = os.path.join(dubbedDir, lang + ".mp4")
-        stitch_audio(sentences, os.path.join(audioDir, lang), videoFile, outFile)
-    
-    print("Done")
+        stitch_audio(sentences, os.path.join(
+            audioDir, lang), videoFile, outFile)
 
+    print("Done")
 
 
 if __name__ == "__main__":
