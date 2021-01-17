@@ -111,14 +111,15 @@ def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=1, enha
     config = speech.RecognitionConfig(
         enable_automatic_punctuation=True,
         enable_word_time_offsets=True,
-        language_code="en-US" if langCode == "en" else langCode, # necessary to use video model
+        # necessary to use video model
+        language_code="en-US" if langCode == "en" else langCode,
         speech_contexts=[{
             "phrases": phraseHints,
             "boost": 15
         }],
         diarization_config=diarizationConfig,
         profanity_filter=True,
-        use_enhanced= True if enhancedModel else False,
+        use_enhanced=True if enhancedModel else False,
         model="video" if enhancedModel else None
 
     )
@@ -231,6 +232,7 @@ def parse_sentence_with_speaker(json, lang):
 
     return sentences
 
+
 def translate_text(input, targetLang, sourceLang=None):
     """Translates from sourceLang to targetLang. If sourceLang is empty,
     it will be auto-detected.
@@ -290,7 +292,7 @@ def speak(text, languageCode, voiceName=None, speakingRate=1):
     response = client.synthesize_speech(
         input=synthesis_input, voice=voice, audio_config=audio_config
     )
-    
+
     return response.audio_content
 
 
@@ -303,24 +305,22 @@ def speakUnderDuration(text, languageCode, durationSecs, voiceName=None):
     baseDuration = AudioSegment.from_mp3(f.name).duration_seconds
     f.close()
     ratio = baseDuration / durationSecs
-    
-    print(f"Desired duration {durationSecs} Base duration {baseDuration} Ratio {ratio}")
-    
+
     # if the audio fits, return it
     if ratio <= 1:
         return baseAudio
 
     # If the base audio is too long to fit in the segment...
-    
+
     # round to one decimal point and go a little faster to be safe,
     ratio = round(ratio, 1)
     if ratio > 4:
-        print("Speeding up as fast as possible, at rate 4x")
         ratio = 4
-    print(f"Speakign with ratio {ratio}")
     return speak(text, languageCode, voiceName=voiceName, speakingRate=ratio)
 
 # TODO
+
+
 def to_srt(chunks, start_times, end_times, outfile):
     """Converts transcripts to SRT an SRT file.
 
@@ -369,11 +369,11 @@ def to_srt(chunks, start_times, end_times, outfile):
     pass
 
 
-def stitch_audio(sentences, audioDir, movieFile, outFile, overlayGain=-20):
+def stitch_audio(sentences, audioDir, movieFile, outFile, overlayGain=-30):
 
     # Files in the audioDir should be labeled 0.wav, 1.wav, etc.
     audioFiles = os.listdir(audioDir)
-    audioFiles.sort()
+    audioFiles.sort(key=lambda x: int(x.split('.')[0]))
 
     # Grab the computer-generated audio file
     segments = [AudioSegment.from_mp3(
@@ -383,13 +383,15 @@ def stitch_audio(sentences, audioDir, movieFile, outFile, overlayGain=-20):
 
     # Place each computer-generated audio at the correct timestamp
     for sentence, segment in zip(sentences, segments):
+        if 'en' in sentence:
+            print(f"{sentence['start_time']}: {sentence['en']}")
         dubbed = dubbed.overlay(
             segment, position=sentence['start_time'] * 1000, gain_during_overlay=overlayGain)
     # Write the final audio to a temporary output file
     audioFile = tempfile.NamedTemporaryFile()
     dubbed.export(audioFile)
     audioFile.flush()
-    
+
     # Add the new audio to the video and save it
     clip = VideoFileClip(movieFile)
     audio = AudioFileClip(audioFile.name)
@@ -398,11 +400,12 @@ def stitch_audio(sentences, audioDir, movieFile, outFile, overlayGain=-20):
     clip.write_videofile(outFile, codec='libx264', audio_codec='aac')
     audioFile.close()
 
-
+# Find voices at https://cloud.google.com/text-to-speech/docs/voices
 def dub(
-    videoFile, outputDir, srcLang, targetLangs=[], 
-    storageBucket=None, phraseHints=[], dubSrc=False, 
-    speakerCount=1, newDir=False):
+        videoFile, outputDir, srcLang, targetLangs=[],
+        storageBucket=None, phraseHints=[], dubSrc=False,
+        speakerCount=1, voices={},
+        newDir=False, genAudio=False):
 
     baseName = os.path.split(videoFile)[-1].split('.')[0]
 
@@ -438,10 +441,11 @@ def dub(
 
         print("Transcribing...")
         transcripts = get_transcripts_json(os.path.join(
-            "gs://", storageBucket, tmpFile), srcLang, 
-            phraseHints=phraseHints, 
+            "gs://", storageBucket, tmpFile), srcLang,
+            phraseHints=phraseHints,
             speakerCount=speakerCount)
-        json.dump(transcripts, open(os.path.join(outputDir, "transcript.json"), "w"))
+        json.dump(transcripts, open(os.path.join(
+            outputDir, "transcript.json"), "w"))
 
         sentences = parse_sentence_with_speaker(transcripts, srcLang)
         fn = os.path.join(outputDir, baseName + ".json")
@@ -453,6 +457,7 @@ def dub(
 
     sentences = json.load(open(os.path.join(outputDir, baseName + ".json")))
     sentence = sentences[0]
+
     for lang in targetLangs:
         print(f"Translating to {lang}")
         for sentence in sentences:
@@ -473,14 +478,20 @@ def dub(
 
     for lang in targetLangs:
         languageDir = os.path.join(audioDir, lang)
+        if genAudio and os.path.exists(languageDir):
+            shutil.rmtree(languageDir)
         os.mkdir(languageDir)
         print(f"Synthesizing audio for {lang}")
         for i, sentence in enumerate(sentences):
-            audio = speakUnderDuration(sentence[lang], lang, sentence['end_time'] - sentence['start_time'])
+            voiceName = voices[lang] if lang in voices else None
+            audio = speakUnderDuration(
+                sentence[lang], lang, sentence['end_time'] - sentence['start_time'],
+                voiceName=voiceName)
             with open(os.path.join(languageDir, f"{i}.mp3"), 'wb') as f:
                 f.write(audio)
 
     dubbedDir = os.path.join(outputDir, "dubbedVideos")
+
     if not "dubbedVideos" in outputFiles:
         os.mkdir(dubbedDir)
 
