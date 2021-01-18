@@ -18,7 +18,8 @@ from google.cloud import texttospeech
 from google.cloud import translate_v2 as translate
 from google.cloud import storage
 from pydub import AudioSegment
-from moviepy.editor import VideoFileClip, AudioFileClip
+from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip
+from moviepy.video.tools.subtitles import SubtitlesClip, TextClip
 import os
 import shutil
 import ffmpeg
@@ -318,19 +319,17 @@ def speakUnderDuration(text, languageCode, durationSecs, voiceName=None):
         ratio = 4
     return speak(text, languageCode, voiceName=voiceName, speakingRate=ratio)
 
-# TODO
 
-
-def to_srt(chunks, start_times, end_times, outfile):
-    """Converts transcripts to SRT an SRT file.
+def toSrt(transcripts, charsPerLine=60):
+    """Converts transcripts to SRT an SRT file. Only intended to work
+    with English.
 
     Args:
-        chunks (string[]): Sentence or sentence parts
-        start_times ([type]): [description]
-        end_times ([type]): [description]
+        transcripts ({}): Transcripts returned from Speech API
+        charsPerLine (int): max number of chars to write per line
 
     Returns:
-        [type]: [description]
+        String srt data
     """
 
     """
@@ -350,26 +349,39 @@ def to_srt(chunks, start_times, end_times, outfile):
     for resolution 1920x1080 with font size 40 pt.
     """
 
-    def _srt_time(seconds):
+    def _srtTime(seconds):
         millisecs = seconds * 1000
         seconds, millisecs = divmod(millisecs, 1000)
         minutes, seconds = divmod(seconds, 60)
         hours, minutes = divmod(minutes, 60)
         return "%d:%d:%d,%d" % (hours, minutes, seconds, millisecs)
 
-    def _to_srt(sentences):
-        out = []
-        for i, sentence in enumerate(sentences):
-            out.append(str(i + 1))
-            out.append(srtTime(sentence['start_time']) +
-                       " --> " + srtTime(sentence["end_time"]))
-            out.append(sentence['sentence'])
-            out.append('\n')
-        return '\n'.join(out)
-    pass
+    def _toSrt(words, startTime, endTime, index):
+        return f"{index}\n" + _srtTime(startTime) + " --> " + _srtTime(endTime) + f"\n{words}"
+
+    startTime = None
+    sentence = ""
+    srt = []
+    index = 1
+    for word in [word for x in transcripts for word in x['words']]:
+        if not startTime:
+            startTime = word['start_time']
+
+        sentence += " " + word['word']
+
+        if len(sentence) > charsPerLine:
+            srt.append(_toSrt(sentence, startTime, word['end_time'], index))
+            index += 1
+            sentence = ""
+            startTime = None
+
+    if len(sentence):
+        srt.append(_toSrt(sentence, startTime, word['end_time'], index))
+
+    return '\n\n'.join(srt)
 
 
-def stitch_audio(sentences, audioDir, movieFile, outFile, overlayGain=-30):
+def stitch_audio(sentences, audioDir, movieFile, outFile, srtPath=None, overlayGain=-30):
 
     # Files in the audioDir should be labeled 0.wav, 1.wav, etc.
     audioFiles = os.listdir(audioDir)
@@ -383,8 +395,6 @@ def stitch_audio(sentences, audioDir, movieFile, outFile, overlayGain=-30):
 
     # Place each computer-generated audio at the correct timestamp
     for sentence, segment in zip(sentences, segments):
-        if 'en' in sentence:
-            print(f"{sentence['start_time']}: {sentence['en']}")
         dubbed = dubbed.overlay(
             segment, position=sentence['start_time'] * 1000, gain_during_overlay=overlayGain)
     # Write the final audio to a temporary output file
@@ -397,14 +407,26 @@ def stitch_audio(sentences, audioDir, movieFile, outFile, overlayGain=-30):
     audio = AudioFileClip(audioFile.name)
     clip = clip.set_audio(audio)
 
+    # Add transcripts, if supplied
+    if srtPath:
+        width, height = clip.size[0] * 0.75, clip.size[1] * 0.25
+        def generator(txt): return TextClip(txt, font='Georgia-Regular',
+                                            size=[width, height], color='white', method="caption")
+        subtitles = SubtitlesClip(
+            srtPath, generator).set_pos(("center", "bottom"))
+
+    clip = CompositeVideoClip([clip, subtitles])
+
     clip.write_videofile(outFile, codec='libx264', audio_codec='aac')
     audioFile.close()
 
 # Find voices at https://cloud.google.com/text-to-speech/docs/voices
+
+
 def dub(
         videoFile, outputDir, srcLang, targetLangs=[],
         storageBucket=None, phraseHints=[], dubSrc=False,
-        speakerCount=1, voices={},
+        speakerCount=1, voices={}, srt=False,
         newDir=False, genAudio=False):
 
     baseName = os.path.split(videoFile)[-1].split('.')[0]
@@ -423,7 +445,7 @@ def dub(
         decode_audio(videoFile, fn)
         print(f"Wrote {fn}")
 
-    if not f"{baseName}.json" in outputFiles:
+    if not f"transcript.json" in outputFiles:
         storageBucket = storageBucket if storageBucket else os.environ['STORAGE_BUCKET']
         if not storageBucket:
             raise Exception(
@@ -455,6 +477,16 @@ def dub(
         print("Deleting cloud file...")
         blob.delete()
 
+    srtPath = os.path.join(outputDir, "subtitles.srt") if srt else None
+    if srt:
+        transcripts = json.load(
+            open(os.path.join(outputDir, "transcript.json")))
+        subtitles = toSrt(transcripts)
+        with open(srtPath, "w") as f:
+            f.write(subtitles)
+        print(
+            f"Wrote srt subtitles to {os.path.join(outputDir, 'subtitles.srt')}")
+
     sentences = json.load(open(os.path.join(outputDir, baseName + ".json")))
     sentence = sentences[0]
 
@@ -485,7 +517,8 @@ def dub(
         for i, sentence in enumerate(sentences):
             voiceName = voices[lang] if lang in voices else None
             audio = speakUnderDuration(
-                sentence[lang], lang, sentence['end_time'] - sentence['start_time'],
+                sentence[lang], lang, sentence['end_time'] -
+                sentence['start_time'],
                 voiceName=voiceName)
             with open(os.path.join(languageDir, f"{i}.mp3"), 'wb') as f:
                 f.write(audio)
@@ -499,7 +532,7 @@ def dub(
         print(f"Dubbing audio for {lang}")
         outFile = os.path.join(dubbedDir, lang + ".mp4")
         stitch_audio(sentences, os.path.join(
-            audioDir, lang), videoFile, outFile)
+            audioDir, lang), videoFile, outFile, srtPath=srtPath)
 
     print("Done")
 
