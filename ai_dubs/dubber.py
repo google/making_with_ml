@@ -35,28 +35,6 @@ import html
 # Load config in .env file
 load_dotenv()
 
-# This function comes from https://github.com/kkroening/ffmpeg-python/blob/master/examples/transcribe.py
-# def decode_audio(fileName):
-#     """Extracts audio from a video file
-
-#     Args:
-#         fileName (String): Path to video file
-
-#     Returns:
-#         Blob: audio blob | Error
-#     """
-#     try:
-#         out, err = (ffmpeg
-#                     .input(fileName)
-#                     .output('-', format='s16le', acodec='pcm_s16le', ac=1, ar='16k')
-#                     .overwrite_output()
-#                     .run(capture_stdout=True, capture_stderr=True)
-#                     )
-#     except ffmpeg.Error as e:
-#         print(e.stderr, file=sys.stderr)
-#         sys.exit(1)
-#     return out
-
 
 def decode_audio(inFile, outFile):
     if not outFile[-4:] != "wav":
@@ -96,7 +74,7 @@ def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=1, enha
             json.append(data)
         return json
 
-    client = speech.SpeechClient()
+    client = speech.SpeechClient()  
     audio = speech.RecognitionAudio(uri=gcsPath)
 
     diarize = speakerCount if speakerCount > 1 else False
