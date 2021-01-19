@@ -10,6 +10,7 @@ cachetools==4.2.0
 certifi==2020.12.5
 cffi==1.14.4
 chardet==4.0.0
+cycler==0.10.0
 decorator==4.4.2
 defusedxml==0.6.0
 entrypoints==0.3
@@ -36,7 +37,8 @@ ipython==7.19.0
 ipython-genutils==0.2.0
 ipywidgets==7.6.2
 isort==5.7.0
-jedi==0.18.0
+jedi==0.17.2
+jenkspy==0.2.0
 Jinja2==2.11.2
 jsonschema==3.2.0
 jupyter==1.0.0
@@ -45,9 +47,11 @@ jupyter-console==6.2.0
 jupyter-core==4.7.0
 jupyterlab-pygments==0.1.2
 jupyterlab-widgets==1.0.0
+kiwisolver==1.3.1
 lazy-object-proxy==1.4.3
 libcst==0.3.16
 MarkupSafe==1.1.1
+matplotlib==3.3.3
 mccabe==0.6.1
 mistune==0.8.4
 moviepy==1.0.3
@@ -59,8 +63,9 @@ nest-asyncio==1.4.3
 notebook==6.1.6
 numpy==1.19.5
 packaging==20.8
+pandas==1.2.0
 pandocfilters==1.4.3
-parso==0.8.1
+parso==0.7.1
 pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==8.1.0
