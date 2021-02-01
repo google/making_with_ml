@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+from pydub import AudioSegment
 from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech
 from google.cloud import translate_v2 as translate
 from google.cloud import storage
-from pydub import AudioSegment
 from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip
 from moviepy.video.tools.subtitles import SubtitlesClip, TextClip
 import os
@@ -37,6 +36,12 @@ load_dotenv()
 
 
 def decode_audio(inFile, outFile):
+    """Converts a video file to a wav file.
+
+    Args:
+        inFile (String): i.e. my/great/movie.mp4
+        outFile (String): i.e. my/great/movie.wav
+    """
     if not outFile[-4:] != "wav":
         outFile += ".wav"
     AudioSegment.from_file(inFile).set_channels(
@@ -51,6 +56,7 @@ def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=1, enha
         langCode (String): language code (i.e. "en-US", see https://cloud.google.com/speech-to-text/docs/languages)
         phraseHints (String[]): list of words that are unusual but likely to appear in the audio file.
         speakerCount (int, optional): Number of speakers in the audio. Only works on English. Defaults to None.
+        enhancedModel (String, optional): Option to use an enhanced speech model, i.e. "video"
 
     Returns:
         list | Operation.error
@@ -74,7 +80,7 @@ def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=1, enha
             json.append(data)
         return json
 
-    client = speech.SpeechClient()  
+    client = speech.SpeechClient()
     audio = speech.RecognitionAudio(uri=gcsPath)
 
     diarize = speakerCount if speakerCount > 1 else False
@@ -88,10 +94,9 @@ def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=1, enha
         enhancedModel = "video"
 
     config = speech.RecognitionConfig(
+        language_code="en-US" if langCode == "en" else langCode,
         enable_automatic_punctuation=True,
         enable_word_time_offsets=True,
-        # necessary to use video model
-        language_code="en-US" if langCode == "en" else langCode,
         speech_contexts=[{
             "phrases": phraseHints,
             "boost": 15
@@ -106,68 +111,18 @@ def get_transcripts_json(gcsPath, langCode, phraseHints=[], speakerCount=1, enha
 
     return _jsonify(res)
 
-
-# # NOTE: This only works for english, basically
-# def parse_sentence_with_speaker(json, lang):
-#     """Takes json from get_transcripts_json and breaks it into sentences
-#     spoken by a single person.
-
-#     Args:
-#         json (string[]): [{"transcript": "lalala", "words": [{"word": "la", "start_time": 20, "end_time": 21, "speaker_tag: 2}]}]
-
-#     Returns:
-#         string[]: [{"sentence": "lalala", "speaker": 1, "start_time": 20, "end_time": 21}]
-#     """
-
-#     punctuation = ['.', '!', '?']
-#     sentences = []
-#     sentence = {}
-#     for result in json:
-#         for word in result['words']:
-#             if not sentence:
-#                 sentence = {
-#                     lang: [word['word']],
-#                     'speaker': word['speaker_tag'],
-#                     'start_time': word['start_time'],
-#                     'end_time': word['end_time']
-#                 }
-#             # If we have a new speaker, save the sentence and create a new one:
-#             elif word['speaker_tag'] != sentence['speaker']:
-#                 sentence[lang] = ' '.join(sentence[lang])
-#                 sentences.append(sentence)
-#                 sentence = {
-#                     lang: [word['word']],
-#                     'speaker': word['speaker_tag'],
-#                     'start_time': word['start_time'],
-#                     'end_time': word['end_time']
-#                 }
-#             else:
-#                 sentence[lang].append(word['word'])
-#                 sentence['end_time'] = word['end_time']
-
-#             if word['word'][-1] in punctuation:
-#                 sentence[lang] = ' '.join(sentence[lang])
-#                 sentences.append(sentence)
-#                 sentence = {}
-#         if sentence:
-#             sentence[lang] = ' '.join(sentence[lang])
-#             sentences.append(sentence)
-#             sentence = {}
-
-#     return sentences
-
 def parse_sentence_with_speaker(json, lang):
     """Takes json from get_transcripts_json and breaks it into sentences
-    spoken by a single person.
+    spoken by a single person. Sentences deliniated by a >= 1 second pause/
 
     Args:
         json (string[]): [{"transcript": "lalala", "words": [{"word": "la", "start_time": 20, "end_time": 21, "speaker_tag: 2}]}]
-
+        lang (string): language code, i.e. "en"
     Returns:
         string[]: [{"sentence": "lalala", "speaker": 1, "start_time": 20, "end_time": 21}]
     """
 
-    # Deal with languages like ja
+    # Special case for parsing japanese words
     def get_word(word, lang):
         if lang == "ja":
             return word.split('|')[0]
@@ -199,7 +154,7 @@ def parse_sentence_with_speaker(json, lang):
                 sentence[lang].append(wordText)
                 sentence['end_time'] = word['end_time']
 
-            # If there's greater than a second gap, assume this is a new sentence
+            # If there's greater than one second gap, assume this is a new sentence
             if i+1 < len(result['words']) and word['end_time'] < result['words'][i+1]['start_time']:
                 sentence[lang] = ' '.join(sentence[lang])
                 sentences.append(sentence)
@@ -238,7 +193,8 @@ def speak(text, languageCode, voiceName=None, speakingRate=1):
     Args:
         text (String): Text to be spoken
         languageCode (String): Language (i.e. "en")
-
+        voiceName: (String, optional): See https://cloud.google.com/text-to-speech/docs/voices
+        speakingRate: (int, optional): speed up or slow down speaking
     Returns:
         bytes : Audio in wav format
     """
@@ -269,13 +225,27 @@ def speak(text, languageCode, voiceName=None, speakingRate=1):
     # Perform the text-to-speech request on the text input with the selected
     # voice parameters and audio file type
     response = client.synthesize_speech(
-        input=synthesis_input, voice=voice, audio_config=audio_config
+        input=synthesis_input,
+        voice=voice,
+        audio_config=audio_config
     )
 
     return response.audio_content
 
 
 def speakUnderDuration(text, languageCode, durationSecs, voiceName=None):
+    """Speak text within a certain time limit.
+    If audio already fits within duratinSecs, no changes will be made.
+
+    Args:
+        text (String): Text to be spoken
+        languageCode (String): language code, i.e. "en"
+        durationSecs (int): Time limit in seconds
+        voiceName (String, optional): See https://cloud.google.com/text-to-speech/docs/voices
+
+    Returns:
+        bytes : Audio in wav format
+    """
     baseAudio = speak(text, languageCode, voiceName=voiceName)
     assert len(baseAudio)
     f = tempfile.NamedTemporaryFile(mode="w+b")
@@ -360,6 +330,20 @@ def toSrt(transcripts, charsPerLine=60):
 
 
 def stitch_audio(sentences, audioDir, movieFile, outFile, srtPath=None, overlayGain=-30):
+    """Combines sentences, audio clips, and video file into the ultimate dubbed video
+
+    Args:
+        sentences (list): Output of parse_sentence_with_speaker
+        audioDir (String): Directory containing generated audio files to stitch together
+        movieFile (String): Path to movie file to dub.
+        outFile (String): Where to write dubbed movie.
+        srtPath (String, optional): Path to transcript/srt file, if desired.
+        overlayGain (int, optional): How quiet to make source audio when overlaying dubs. 
+            Defaults to -30.
+
+    Returns:
+       void : Writes movie file to outFile path
+    """
 
     # Files in the audioDir should be labeled 0.wav, 1.wav, etc.
     audioFiles = os.listdir(audioDir)
@@ -387,28 +371,43 @@ def stitch_audio(sentences, audioDir, movieFile, outFile, srtPath=None, overlayG
 
     # Add transcripts, if supplied
     if srtPath:
-        width, height = clip.size[0] * 0.75, clip.size[1] * 0.25
+        width, height = clip.size[0] * 0.75, clip.size[1] * 0.20
         def generator(txt): return TextClip(txt, font='Georgia-Regular',
-                                            size=[width, height], color='white', method="caption")
+                                            size=[width, height], color='black', method="caption")
         subtitles = SubtitlesClip(
             srtPath, generator).set_pos(("center", "bottom"))
-
-    clip = CompositeVideoClip([clip, subtitles])
+        clip = CompositeVideoClip([clip, subtitles])
 
     clip.write_videofile(outFile, codec='libx264', audio_codec='aac')
     audioFile.close()
-
-# Find voices at https://cloud.google.com/text-to-speech/docs/voices
-
 
 def dub(
         videoFile, outputDir, srcLang, targetLangs=[],
         storageBucket=None, phraseHints=[], dubSrc=False,
         speakerCount=1, voices={}, srt=False,
-        newDir=False, genAudio=False):
+        newDir=False, genAudio=False, noTranslate=False):
+    """Translate and dub a movie.
+
+    Args:
+        videoFile (String): File to dub
+        outputDir (String): Directory to write output files
+        srcLang (String): Language code to translate from (i.e. "fi")
+        targetLangs (list, optional): Languages to translate too, i.e. ["en", "fr"]
+        storageBucket (String, optional): GCS bucket for temporary file storage. Defaults to None.
+        phraseHints (list, optional): "Hints" for words likely to appear in audio. Defaults to [].
+        dubSrc (bool, optional): Whether to generate dubs in the source language. Defaults to False.
+        speakerCount (int, optional): How many speakers in the video. Defaults to 1.
+        voices (dict, optional): Which voices to use for dubbing, i.e. {"en": "en-AU-Standard-A"}. Defaults to {}.
+        srt (bool, optional): Path of SRT transcript file, if it exists. Defaults to False.
+        newDir (bool, optional): Whether to start dubbing from scratch or use files in outputDir. Defaults to False.
+        genAudio (bool, optional): Generate new audio, even if it's already been generated. Defaults to False.
+        noTranslate (bool, optional): Don't translate. Defaults to False.
+
+    Raises:
+        void : Writes dubbed video and intermediate files to outputDir
+    """
 
     baseName = os.path.split(videoFile)[-1].split('.')[0]
-
     if newDir:
         shutil.rmtree(outputDir)
 
@@ -436,6 +435,7 @@ def dub(
 
         tmpFile = os.path.join("tmp", str(uuid.uuid4()) + ".wav")
         blob = bucket.blob(tmpFile)
+        # Temporary upload audio file to the cloud
         blob.upload_from_filename(os.path.join(
             outputDir, baseName + ".wav"), content_type="audio/wav")
 
@@ -468,15 +468,17 @@ def dub(
     sentences = json.load(open(os.path.join(outputDir, baseName + ".json")))
     sentence = sentences[0]
 
-    for lang in targetLangs:
-        print(f"Translating to {lang}")
-        for sentence in sentences:
-            sentence[lang] = translate_text(sentence[srcLang], lang, srcLang)
+    if not noTranslate:
+        for lang in targetLangs:
+            print(f"Translating to {lang}")
+            for sentence in sentences:
+                sentence[lang] = translate_text(
+                    sentence[srcLang], lang, srcLang)
 
-    # Write the translations to json
-    fn = os.path.join(outputDir, baseName + ".json")
-    with open(fn, "w") as f:
-        json.dump(sentences, f)
+        # Write the translations to json
+        fn = os.path.join(outputDir, baseName + ".json")
+        with open(fn, "w") as f:
+            json.dump(sentences, f)
 
     audioDir = os.path.join(outputDir, "audioClips")
     if not "audioClips" in outputFiles:
