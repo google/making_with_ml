@@ -5,12 +5,13 @@ In this directory, you'll find code that takes a movie and:
 - Translates those captions
 - "Dubs" the movie in a new language with computer voices
 
-After doing the setup described below, you should be able to run:
+After completing the setup described below, you should be able to run:
 
-`python dubber.py my_movie_file.mp4 "en" outputDirectory --targetLangs ["en", "es"]`
+        python dubber.py my_movie_file.mp4 "en" outputDirectory --targetLangs '["ja", "es"]'
 
 to produce a new movie file dubbed in the languages specified in `targetLang`. 
 
+_Find a bug? Let me know! I appreciate it._
 
 ## Setup
 
@@ -40,8 +41,45 @@ From the command line, run:
     
 And edit `.env`, filling in your own values for project id and bucket.
 
-6. Install the python dependencies:
+6. Create a virtualenv:
+
+        python3 -m venv venv
+        source ./venv/bin/activate
+
+7. Install the python dependencies:
 
         pip install -r requirements.txt
 
-7. Viola! You should be good to go.
+8. Viola! You should be good to go.
+
+        python dubber.py my_movie_file.mp4 "en" outputDirectory --targetLangs '["ja", "es"]'
+
+## Command Line Options
+
+`dubber.py` supports the following command line args:
+
+    Args:
+        videoFile (String): File to dub
+        outputDir (String): Directory to write output files
+        srcLang (String): Language code to translate from (i.e. "fi")
+        targetLangs (list, optional): Languages to translate too, i.e. ["en", "fr"]
+        storageBucket (String, optional): GCS bucket for temporary file storage. Defaults to None.
+        phraseHints (list, optional): "Hints" for words likely to appear in audio. Defaults to [].
+        dubSrc (bool, optional): Whether to generate dubs in the source language. Defaults to False.
+        speakerCount (int, optional): How many speakers in the video. Defaults to 1.
+        voices (dict, optional): Which voices to use for dubbing, i.e. {"en": "en-AU-Standard-A"}. Defaults to {}.
+        srt (bool, optional): Path of SRT transcript file, if it exists. Defaults to False.
+        newDir (bool, optional): Whether to start dubbing from scratch or use files in outputDir. Defaults to False.
+        genAudio (bool, optional): Generate new audio, even if it's already been generated. Defaults to False.
+        noTranslate (bool, optional): Don't translate. Defaults to False.
+
+Use the option `--dubSrc` to generate a dubbed version of the video in the source language (i.e. without translation).
+
+To change the computer voice used in dubs, find the name of a supported voice [here](https://cloud.google.com/text-to-speech/docs/voices) and pass it to the tool as a dictionary:
+
+        python dubber.py my_movie_file.mp4 "en" outputDirectory --targetLangs '["ja", "es"]' --voices '{"ja": "ja-JP-Standard-A	", "es": "es-ES-Standard-A"}'
+
+Pass an array of words with the `phraseHints` flag to increase the likelihood those words are recognized in the source video:
+
+        python dubber.py my_movie_file.mp4 "en" outputDirectory --targetLangs '["ja", "es"]' --phraseHints '["Dale", "Machine Learning", "AutoML"]'
+
