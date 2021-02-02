@@ -75,6 +75,8 @@ And edit `.env`, filling in your own values for project id and bucket.
 
 Use the option `--dubSrc` to generate a dubbed version of the video in the source language (i.e. without translation).
 
+Use `--srt` to generate subtitles/closed captions in the source language.
+
 To change the computer voice used in dubs, find the name of a supported voice [here](https://cloud.google.com/text-to-speech/docs/voices) and pass it to the tool as a dictionary:
 
         python dubber.py my_movie_file.mp4 "en" outputDirectory --targetLangs '["ja", "es"]' --voices '{"ja": "ja-JP-Standard-A	", "es": "es-ES-Standard-A"}'
