@@ -7,7 +7,7 @@ In this directory, you'll find code that takes a movie and:
 
 After completing the setup described below, you should be able to run:
 
-        python dubber.py my_movie_file.mp4 "en" outputDirectory --targetLangs '["ja", "es"]'
+        python dubber.py my_movie_file.mp4 outputDirectory "en" --targetLangs '["ja", "es"]'
 
 to produce a new movie file dubbed in the languages specified in `targetLang`. 
 
