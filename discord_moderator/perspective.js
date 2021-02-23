@@ -15,7 +15,7 @@
  */
 
 /* Example usage of some features of the Perspective API */
-const googleapis = require('googleapis');
+const {google} = require('googleapis');
 
 require('dotenv').config();
 
@@ -40,7 +40,7 @@ const attributeThresholds = {
  * @return {json} res - analyzed atttributes
  */
 async function analyzeText(text) {
-  const analyzer = new googleapis.commentanalyzer_v1alpha1.Commentanalyzer();
+  const analyzer = google.commentanalyzer('v1alpha1');
 
   // This is the format the API expects
   const requestedAttributes = {};
