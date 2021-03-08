@@ -490,7 +490,9 @@ def dub(
 
     for lang in targetLangs:
         languageDir = os.path.join(audioDir, lang)
-        if genAudio and os.path.exists(languageDir):
+        if os.path.exists(languageDir):
+            if not genAudio:
+                continue
             shutil.rmtree(languageDir)
         os.mkdir(languageDir)
         print(f"Synthesizing audio for {lang}")
