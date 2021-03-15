@@ -13,6 +13,8 @@ graveyard
 
 # Env
 .env
+env
+venv
 
 # Node
 node_modules
@@ -38,6 +40,7 @@ node_modules
 .pub-cache/
 .pub/
 /build/
+.fvm
 
 # Web related
 lib/generated_plugin_registrant.dart
@@ -64,3 +67,7 @@ firebase-debug.log*
 .firebaserc
 firebase-debug.log
 firebaseconfig.json
+
+# iPython
+.ipynb_checkpoints
+key.json
