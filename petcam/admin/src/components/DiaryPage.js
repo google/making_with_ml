@@ -19,7 +19,7 @@ const useStyles = makeStyles({
 function DiaryPage(props) {
   const { user } = props;
   const classes = useStyles();
-  const [diaryList, setDiaryList] = useState();
+  const [diaryList, setDiaryList] = useState([]);
 
   useEffect(() => {
     const db = firebase.firestore();
