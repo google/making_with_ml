@@ -1,0 +1,255 @@
+/**
+ * @license
+ * Copyright 2018 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
+/******************************************************
+ * Stylesheet by Jason Mayes 2021.
+ *
+ * Got questions? Reach out to me on social:
+ * Twitter: @jason_mayes
+ * LinkedIn: https://www.linkedin.com/in/creativetech
+ *****************************************************/
+
+ html, body, div, span, applet, object, iframe,
+ h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+ a, abbr, acronym, address, big, cite, code,
+ del, dfn, em, img, ins, kbd, q, s, samp,
+ small, strike, strong, sub, sup, tt, var,
+ b, u, i, center,
+ dl, dt, dd, ol, ul, li,
+ fieldset, form, label, legend,
+ table, caption, tbody, tfoot, thead, tr, th, td,
+ article, aside, canvas, details, embed, 
+ figure, figcaption, footer, header, hgroup, 
+ menu, nav, output, ruby, section, summary,
+ time, mark, audio, video {
+     margin: 0;
+     padding: 0;
+     border: 0;
+     font-size: 100%;
+     font: inherit;
+     vertical-align: baseline;
+ }
+ 
+ /* HTML5 display-role reset for older browsers */
+ article, aside, details, figcaption, figure, 
+ footer, header, hgroup, menu, nav, section {
+     display: block;
+ }
+ 
+ body {
+     line-height: 1;
+ }
+ 
+ ol, ul {
+     list-style: none;
+ }
+ 
+ blockquote, q {
+     quotes: none;
+ }
+ 
+ blockquote:before, blockquote:after,
+ q:before, q:after {
+     content: '';
+     content: none;
+ }
+ 
+ table {
+     border-collapse: collapse;
+     border-spacing: 0;
+ }
+ 
+ 
+ body {
+   font-family: 'Roboto', helvetica, arial, sans-serif;
+   font-weight: 100;
+   color: #f8f7fa;
+   background-color: #070707;
+   background: url('https://cdn.glitch.com/2f967c1e-2fd2-416a-a512-afb9fe40d1b1%2Fbackground.jpg?v=1614820448244') no-repeat center center fixed;
+   background-size: cover;
+   width: 100%;
+   height: 100%;
+   text-align: center;
+ }
+ 
+ h1 {
+   color: #f8f8f8;
+   font-weight: 100;
+   font-size: 22pt;
+ }
+ 
+ header {
+   background: rgb(7,7,7);
+   background: url('https://cdn.glitch.com/2f967c1e-2fd2-416a-a512-afb9fe40d1b1%2Fpaw.png?v=1614823109197'), linear-gradient(0deg, rgba(7,7,7,1) 0%, rgba(7,7,7,1) 85%, rgba(55,52,54,1) 100%);
+   height: 100px;
+   background-repeat: no-repeat; 
+   padding: 50px 0 0 100px;
+ }
+ 
+ header, footer {
+   clear: both;
+   text-align: left;
+ }
+ 
+ label, select, p {
+   font-size: 120%;
+ }
+ 
+ label, select {
+   display: block;
+   margin: 15px auto;
+   min-width: 150px;
+ }
+ 
+ header p {
+   color: #717171;
+   font-style: italic;
+   padding: 5px 0 0 0;
+   font-weight: 600;
+   font-size: 115%;
+ }
+ 
+ video {
+   clear: both;
+   display: block;
+   z-index: 0;
+   transform-origin: 0 0;
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+ }
+ 
+ section {
+   opacity: 1;
+   transition: opacity 500ms ease-in-out;
+ }
+ 
+ section {
+   position: fixed;
+   top: 150px;
+   left: 0;
+   bottom: 0;
+   right: 0;
+ }
+ 
+ .circularButton {
+   border-radius: 50%;
+   background-color: #372e31;
+   border: 2px solid #fff;
+   display: inline-block;
+   cursor: pointer;
+   margin: 0px auto;
+   text-indent: -1000px;
+   overflow: hidden;
+ }
+ 
+ .removed {
+   display: none;
+ }
+ 
+ .disabled {
+   opacity: 0.25;
+ }
+ 
+ .invisible {
+   opacity: 0;
+ }
+ 
+ .videoView {
+   position: relative;
+   width: 100%;
+   height: 100%;
+ }
+ 
+ .videoView p {
+   position: absolute;
+   padding: 5px;
+   background-color: rgba(233, 30, 99, 0.85);
+   color: #FFF;
+   border: 1px solid rgba(233, 30, 99, 0.7);
+   z-index: 2;
+   font-size: 12px;
+   margin: 0;
+ }
+ 
+ .highlighter {
+   background: transparent;
+   border: 2px solid rgba(233, 30, 99, 0.7);
+   z-index: 1;
+   position: absolute;
+ }
+ 
+ .prompt {
+   top: 30%;
+   width: calc(100% - 120px);
+   margin: 0 60px;
+   text-align: center;
+   position: fixed;
+ }
+ 
+ .grayscale {
+   filter: grayscale(1);
+ }
+ 
+ #webcamButton {
+   width: 180px;
+   height: 180px;
+   top: calc(50% - 90px);
+   left: calc(50% - 90px);
+   position: absolute;
+   z-index: 10;
+   background-image: url('https://cdn.glitch.com/2f967c1e-2fd2-416a-a512-afb9fe40d1b1%2Fcam.png?v=1614817566978');
+   background-position: center;
+   background-repeat: no-repeat;
+ }
+ 
+ #enableDetection {
+   width: 120px;
+   height: 120px;
+   bottom: 30px;
+   left: calc(50% - 60px);
+   position: absolute;
+   z-index: 10;
+ }
+ 
+ #enableDetection::after {
+   content: " ";
+   text-indent: 0;
+   width: 30px;
+   height: 30px;
+   background: red;
+   position: fixed;
+   left: calc(50% - 15px);
+   bottom: 75px;
+   border-radius: 50%;
+ }
+ 
+ #step2 {
+   background: rgba(22,22,22, 0.7);
+ }
+ 
+ #step3 p {
+   color: #cdcdcd;
+   position: fixed;
+   bottom: 50px;
+   text-align: center;
+   margin: 40px;
+ }
+ 
+ #step3 p span {
+   font-weight: bold;
+ }

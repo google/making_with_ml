@@ -10,12 +10,19 @@ import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
-import { IconButton, Menu, MenuItem } from "@material-ui/core";
+import {
+  BottomNavigation,
+  BottomNavigationAction,
+  IconButton,
+  Menu,
+  MenuItem,
+} from "@material-ui/core";
 import { AccountCircle } from "@material-ui/icons";
+import CameraEnhanceIcon from "@material-ui/icons/CameraEnhance";
+import ArtTrackIcon from "@material-ui/icons/ArtTrack";
+import CameraPage from "./components/CameraPage";
 
-console.log("Initializing");
 firebase.initializeApp(firebaseConfig);
-console.log("Done");
 
 const firebaseAppAuth = firebase.auth();
 const providers = {
@@ -33,14 +40,23 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     justifyContent: "center",
   },
+  bottomNav: {
+    width: "100%",
+    position: "fixed",
+    bottom: 0,
+  },
 }));
 
 function App(props) {
   const { user, signOut, signInWithGoogle } = props;
   const classes = useStyles();
 
+  // Screen navigation
+  const [currentScreen, setCurrentScreen] = React.useState(0);
+
   // For handling the profile menu
   const [anchorEl, setAnchorEl] = React.useState(null);
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -90,8 +106,27 @@ function App(props) {
         </Toolbar>
       </AppBar>
       <div className={classes.appContainer}>
-        {user ? <DiaryPage user={user} camera={1} /> : <></>}
+        {user ? (
+          currentScreen === 0 ? (
+            <DiaryPage user={user} camera={1} />
+          ) : (
+            <CameraPage camera={1} />
+          )
+        ) : (
+          <></>
+        )}
       </div>
+      <BottomNavigation
+        value={currentScreen}
+        onChange={(event, newValue) => {
+          setCurrentScreen(newValue);
+        }}
+        showLabels
+        className={classes.bottomNav}
+      >
+        <BottomNavigationAction label="Log" icon={<ArtTrackIcon />} />
+        <BottomNavigationAction label="Camera" icon={<CameraEnhanceIcon />} />
+      </BottomNavigation>
     </div>
   );
 }

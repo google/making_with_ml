@@ -9,7 +9,10 @@ const useStyles = makeStyles({
         width: "100%",
         display: "flex",
         flexDirection: "column",
-        marginBottom: 25
+        marginBottom: 25,
+        padding: 12,
+        borderRadius: 3,
+        boxShadow: "0 1px 6px 0 rgb(0 0 0 / 20%)",
     },
     image: {
         width: "100%",

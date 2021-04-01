@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Pet Cam Client</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Jason Mayes">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,400;0,700;1,100&display=swap" rel="stylesheet">
+    <!-- Import the webpage's stylesheet -->
+    <link rel="stylesheet" href="/camera.css">
+  </head>  
+  <body>
+    <header>
+      <h1>Pet Cam</h1>
+      <p>Client</p>
+    </header>
+    
+    <section id="step1">
+      <p class="prompt">Welcome, to start, allow access to your camera once the button becomes enabled below.</p>
+      <div id="liveView" class="videoView">
+        <button id="webcamButton" class="circularButton disabled">Enable Webcam</button>
+        <video id="webcam" autoplay></video>
+      </div>
+    </section>
+    
+    <section id="step2" class="removed">
+      <label for="pet">Great! Now select what pet you want to recognize:</label>
+      <select name="pet" id="pet">
+        <option value="cat">Cat</option>
+        <option value="dog">Dog</option>
+        <option value="bird">Bird</option>
+        <option value="person">Person</option>
+      </select>
+      
+      <label for="item">Alert me when the pet is near:</label>
+      <select name="item" id="item">
+        <option value="bed">Bed</option>
+        <option value="bowl">Bowl</option>
+        <option value="chair">Chair</option>
+        <option value="couch">Couch</option>
+        <option value="laptop">Laptop</option>
+        <option value="oven">Oven</option>
+        <option value="refrigerator">Refrigerator</option>
+        <option value="tv">Television</option>
+        <option value="toilet">Toilet</option>
+      </select>
+      
+      <button id="enableDetection" class="circularButton">Enable Detection</button>
+    </section>
+    
+    <section id="step3" class="removed">
+       <p>Please place camera in view of <span id="chosenItem"></span> to start monitoring</p>
+    </section>
+        
+    <!-- Import TensorFlow.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js" type="text/javascript"></script>
+    
+    <!-- Load the coco-ssd model to use to recognize things in images -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-firestore.js"></script>
+    
+    <!-- Import the page's JavaScript to do some stuff -->
+    <script src="/camera.js" defer></script>
+  </body>
+</html>
