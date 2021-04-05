@@ -47,15 +47,15 @@ async function kickBaddie(user, guild) {
 /**
  * Analyzes a user's message for attribues
  * and reacts to it.
- * @param {any} evaluatorAPI - the api that evaluates our message
- * @param {string} message - message the user sent
+ * @param {any} evaluatorApi - the api that evaluates our message
+ * @param {any} message - message the user sent
  * @return {bool} shouldKick - whether or not we should
  * kick the users
  */
-async function evaluateMessage(evaluatorAPI, message) {
+async function evaluateMessage(evaluatorApi, message) {
   let scores;
   try {
-    scores = await evaluatorAPI.analyzeText(message.content);
+    scores = await evaluatorApi.analyzeText(message.content);
   } catch (err) {
     console.log(err);
     return false;
@@ -97,6 +97,34 @@ function getKarma() {
 }
 
 /**
+ * Process the incoming message with the api and evaluates if kicking
+ * @param {any} evaluatorApi - the api that evaluates our message
+ * @param {any} message - the message
+ */
+async function processMessage(evaluatorApi, message) {
+  // Evaluate attributes of user's message
+  let shouldKick = false;
+  try {
+    shouldKick = await evaluateMessage(evaluatorApi, message);
+  } catch (err) {
+    console.log(err);
+  }
+  if (shouldKick) {
+    kickBaddie(message.author, message.guild);
+    delete users[message.author.id];
+    message
+        .channel
+        .send(`Kicked user ${message.author.username} from channel`);
+    return;
+  }
+
+  if (message.content.startsWith('!karma')) {
+    const karma = getKarma(message);
+    message.channel.send(karma ? karma : 'No karma yet!');
+  }
+}
+
+/**
  * Initiates the client and receives the evaluatorApi for messages
  * @param {any} evaluatorApi - the api that evaluates our message
  * @param {any} client - the client that represents the bot
@@ -117,26 +145,7 @@ function init(evaluatorApi, client) {
       users[userid] = [];
     }
 
-    // Evaluate attributes of user's message
-    let shouldKick = false;
-    try {
-      shouldKick = await evaluateMessage(evaluatorApi, message);
-    } catch (err) {
-      console.log(err);
-    }
-    if (shouldKick) {
-      kickBaddie(message.author, message.guild);
-      delete users[message.author.id];
-      message
-          .channel
-          .send(`Kicked user ${message.author.username} from channel`);
-      return;
-    }
-
-    if (message.content.startsWith('!karma')) {
-      const karma = getKarma(message);
-      message.channel.send(karma ? karma : 'No karma yet!');
-    }
+    await processMessage(evaluatorApi, message);
   });
 
   client.login(process.env.DISCORD_TOKEN);
