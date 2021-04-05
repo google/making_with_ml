@@ -15,7 +15,6 @@
  */
 
 const Discord = require('discord.js');
-const perspective = require('./perspective.js');
 
 require('dotenv').config();
 
@@ -50,14 +49,15 @@ async function kickBaddie(user, guild) {
 /**
  * Analyzes a user's message for attribues
  * and reacts to it.
+ * @param {any} evaluatorAPI - the api that evaluates our message
  * @param {string} message - message the user sent
  * @return {bool} shouldKick - whether or not we should
  * kick the users
  */
-async function evaluateMessage(message) {
+async function evaluateMessage(evaluatorAPI, message) {
   let scores;
   try {
-    scores = await perspective.analyzeText(message.content);
+    scores = await evaluatorAPI.analyzeText(message.content);
   } catch (err) {
     console.log(err);
     return false;
@@ -98,44 +98,52 @@ function getKarma() {
   return scores.join('\n');
 }
 
-// Create an instance of a Discord client
-const client = new Discord.Client();
+/**
+ * Initiates the client and receives the evaluatorApi for messages
+ * @param {any} evaluatorApi - the api that evaluates our message
+ */
+function init(evaluatorApi) {
+  // Create an instance of a Discord client
+  const client = new Discord.Client();
 
-client.on('ready', () => {
-  console.log('I am ready!');
-});
+  client.on('ready', () => {
+    console.log('I am ready!');
+  });
 
-client.on('message', async (message) => {
-  // Ignore messages that aren't from a guild
-  // or are from a bot
-  if (!message.guild || message.author.bot) return;
+  client.on('message', async (message) => {
+    // Ignore messages that aren't from a guild
+    // or are from a bot
+    if (!message.guild || message.author.bot) return;
 
-  // If we've never seen a user before, add them to memory
-  const userid = message.author.id;
-  if (!users[userid]) {
-    users[userid] = [];
-  }
+    // If we've never seen a user before, add them to memory
+    const userid = message.author.id;
+    if (!users[userid]) {
+      users[userid] = [];
+    }
 
-  // Evaluate attributes of user's message
-  let shouldKick = false;
-  try {
-    shouldKick = await evaluateMessage(message);
-  } catch (err) {
-    console.log(err);
-  }
-  if (shouldKick) {
-    kickBaddie(message.author, message.guild);
-    delete users[message.author.id];
-    message.channel.send(`Kicked user ${message.author.username} from channel`);
-    return;
-  }
+    // Evaluate attributes of user's message
+    let shouldKick = false;
+    try {
+      shouldKick = await evaluateMessage(evaluatorApi, message);
+    } catch (err) {
+      console.log(err);
+    }
+    if (shouldKick) {
+      kickBaddie(message.author, message.guild);
+      delete users[message.author.id];
+      message
+          .channel
+          .send(`Kicked user ${message.author.username} from channel`);
+      return;
+    }
 
+    if (message.content.startsWith('!karma')) {
+      const karma = getKarma(message);
+      message.channel.send(karma ? karma : 'No karma yet!');
+    }
+  });
 
-  if (message.content.startsWith('!karma')) {
-    const karma = getKarma(message);
-    message.channel.send(karma ? karma : 'No karma yet!');
-  }
-});
+  client.login(process.env.DISCORD_TOKEN);
+}
 
-// Log our bot in using the token from https://discordapp.com/developers/applications/me
-client.login(process.env.DISCORD_TOKEN);
+module.exports.init = init;
