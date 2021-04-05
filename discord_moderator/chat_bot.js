@@ -49,10 +49,11 @@ async function kickBaddie(user, guild) {
  * and reacts to it.
  * @param {any} evaluatorApi - the api that evaluates our message
  * @param {any} message - message the user sent
+ * @param {any} users - users already processed
  * @return {bool} shouldKick - whether or not we should
  * kick the users
  */
-async function evaluateMessage(evaluatorApi, message) {
+async function evaluateMessage(evaluatorApi, message, users) {
   let scores;
   try {
     scores = await evaluatorApi.analyzeText(message.content);
@@ -71,12 +72,8 @@ async function evaluateMessage(evaluatorApi, message) {
                 users[userid][attribute] + 1 : 1;
     }
   }
-  // Return whether or not we should kick the user
-  if (users[userid] && users[userid]['TOXICITY']) {
-    return (users[userid]['TOXICITY'] > process.env.KICK_THRESHOLD);
-  }
 
-  return false;
+  return (users[userid]['TOXICITY'] > process.env.KICK_THRESHOLD);
 }
 
 /**
@@ -106,10 +103,16 @@ function getKarma() {
  * @param {any} message - the message
  */
 async function processMessage(evaluatorApi, message) {
+  // If we've never seen a user before, add them to memory
+  const userid = message.author.id;
+  if (!users[userid]) {
+    users[userid] = [];
+  }
+
   // Evaluate attributes of user's message
   let shouldKick = false;
   try {
-    shouldKick = await evaluateMessage(evaluatorApi, message);
+    shouldKick = await evaluateMessage(evaluatorApi, message, users);
   } catch (err) {
     console.log(err);
   }
@@ -142,12 +145,6 @@ function init(evaluatorApi, client) {
     // Ignore messages that aren't from a guild
     // or are from a bot
     if (!message.guild || message.author.bot) return;
-
-    // If we've never seen a user before, add them to memory
-    const userid = message.author.id;
-    if (!users[userid]) {
-      users[userid] = [];
-    }
 
     await processMessage(evaluatorApi, message);
   });
