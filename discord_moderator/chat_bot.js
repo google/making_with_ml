@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-const Discord = require('discord.js');
-
 require('dotenv').config();
 
 // Set your emoji "awards" here
@@ -101,11 +99,9 @@ function getKarma() {
 /**
  * Initiates the client and receives the evaluatorApi for messages
  * @param {any} evaluatorApi - the api that evaluates our message
+ * @param {any} client - the client that represents the bot
  */
-function init(evaluatorApi) {
-  // Create an instance of a Discord client
-  const client = new Discord.Client();
-
+function init(evaluatorApi, client) {
   client.on('ready', () => {
     console.log('I am ready!');
   });

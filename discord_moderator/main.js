@@ -1,9 +1,12 @@
 
+const Discord = require('discord.js');
 const perspective = require('./perspective.js');
-const discord = require('./discord.js');
+const chatBot = require('./chat_bot.js');
 
 const evaluatorApi = {
   analyzeText: (message) => perspective.analyzeText(message),
 };
 
-discord.init(evaluatorApi);
+const client = new Discord.Client();
+
+chatBot.init(evaluatorApi, client);
