@@ -72,7 +72,11 @@ async function evaluateMessage(evaluatorApi, message) {
     }
   }
   // Return whether or not we should kick the user
-  return (users[userid]['TOXICITY'] > process.env.KICK_THRESHOLD);
+  if (users[userid] && users[userid]['TOXICITY']) {
+    return (users[userid]['TOXICITY'] > process.env.KICK_THRESHOLD);
+  }
+
+  return false;
 }
 
 /**
@@ -151,4 +155,7 @@ function init(evaluatorApi, client) {
   client.login(process.env.DISCORD_TOKEN);
 }
 
-module.exports.init = init;
+module.exports.methods = {
+  'init': init,
+  'evaluateMessage': evaluateMessage,
+};

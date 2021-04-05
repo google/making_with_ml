@@ -9,4 +9,4 @@ const evaluatorApi = {
 
 const client = new Discord.Client();
 
-chatBot.init(evaluatorApi, client);
+chatBot.methods.init(evaluatorApi, client);
