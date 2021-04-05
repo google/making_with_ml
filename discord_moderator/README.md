@@ -119,4 +119,6 @@ To modify this threshold, modify `KICK_THRESHOLD` in your `.env` file.
 
 13. Your Discord Bot should run successfully on your local computer now. As a next step, try hosting it with a Cloud service, like [App Engine](https://cloud.google.com/appengine).
 
+14. To run the unit tests, just execute:
 
+`npm test`
