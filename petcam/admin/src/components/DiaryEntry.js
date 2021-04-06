@@ -26,13 +26,15 @@ const useStyles = makeStyles({
 function DiaryEntry(props) {
     const classes = useStyles();
 
-    const {imgId, userId} = props;
+    const {imgId, userId, img} = props;
     const [imgUrl, setImgUrl] = useState();
   
     useEffect(() => {
       var storage = firebase.storage();
-      storage.ref(`users/${userId}/${imgId}`).getDownloadURL().then((url) => {
+      storage.ref(img).getDownloadURL().then((url) => {
           setImgUrl(url);
+      }).catch((error) => {
+        console.log(error);
       });
     }, [imgId, userId]);
   

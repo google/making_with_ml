@@ -15,6 +15,7 @@
     <header>
       <h1>Pet Cam</h1>
       <p>Client</p>
+      <p id="monitoring" class="invisible">Monitoring</p>
     </header>
     
     <section id="step1">
@@ -45,6 +46,7 @@
         <option value="refrigerator">Refrigerator</option>
         <option value="tv">Television</option>
         <option value="toilet">Toilet</option>
+        <option value="cell phone">Cell Phone</option>
       </select>
       
       <button id="enableDetection" class="circularButton">Enable Detection</button>
@@ -64,7 +66,24 @@
     <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-storage.js"></script>
     
+    <script>
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        var firebaseConfig = {
+          apiKey: "",
+          authDomain: "",
+          projectId: "",
+          storageBucket: "",
+          messagingSenderId: "",
+          appId: "",
+          measurementId: ""
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+      </script>
+      
     <!-- Import the page's JavaScript to do some stuff -->
     <script src="/camera.js" defer></script>
   </body>
