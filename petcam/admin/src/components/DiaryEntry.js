@@ -26,7 +26,7 @@ const useStyles = makeStyles({
 function DiaryEntry(props) {
     const classes = useStyles();
 
-    const {imgId, userId, img} = props;
+    const {userId, img} = props;
     const [imgUrl, setImgUrl] = useState();
   
     useEffect(() => {
@@ -36,7 +36,7 @@ function DiaryEntry(props) {
       }).catch((error) => {
         console.log(error);
       });
-    }, [imgId, userId]);
+    }, [img, userId]);
   
     const events = props.eventData;
 
