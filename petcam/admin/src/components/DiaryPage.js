@@ -25,10 +25,11 @@ function DiaryPage(props) {
     const db = firebase.firestore();
     //TODO: Filter by camera
     db.collection("users").doc(user.uid).collection("events").onSnapshot((snapshot) => {
-        const data = [];
+        let data = [];
         snapshot.forEach((doc) => {
             data.push(doc.data());
         });
+        data = data.sort((a, b) => b.dateTime - a.dateTime);
         setDiaryList(data);
     }, (err) => {
         console.log(`Err: ${err}`)
