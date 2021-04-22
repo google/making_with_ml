@@ -10,17 +10,9 @@ import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
-import {
-  BottomNavigation,
-  BottomNavigationAction,
-  IconButton,
-  Menu,
-  MenuItem,
-} from "@material-ui/core";
+import { IconButton, Link, Menu, MenuItem } from "@material-ui/core";
 import { AccountCircle } from "@material-ui/icons";
 import CameraEnhanceIcon from "@material-ui/icons/CameraEnhance";
-import ArtTrackIcon from "@material-ui/icons/ArtTrack";
-import CameraPage from "./components/CameraPage";
 
 firebase.initializeApp(firebaseConfig);
 
@@ -57,7 +49,7 @@ function App(props) {
   // For handling the profile menu
   const [anchorEl, setAnchorEl] = React.useState(null);
 
-  const handleClick = (event) => {
+  const handleLoginClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -79,11 +71,21 @@ function App(props) {
           </Typography>
           {user ? (
             <>
+              <Link href={process.env.PUBLIC_URL + "/camera.html"} target="_blank" rel="noreferrer" color="inherit">
+                <IconButton
+                  edge="end"
+                  aria-controls="simple-menu"
+                  aria-haspopup="true"
+                  color="inherit"
+                >
+                  <CameraEnhanceIcon />
+                </IconButton>
+              </Link>
               <IconButton
                 edge="end"
                 aria-controls="simple-menu"
                 aria-haspopup="true"
-                onClick={handleClick}
+                onClick={handleLoginClick}
                 color="inherit"
               >
                 <AccountCircle />
@@ -99,34 +101,15 @@ function App(props) {
               </Menu>
             </>
           ) : (
-            <Button color="inherit" onClick={user ? signOut : signInWithGoogle}>
+            <Button color="inherit" onClick={signInWithGoogle}>
               Login
             </Button>
           )}
         </Toolbar>
       </AppBar>
       <div className={classes.appContainer}>
-        {user ? (
-          currentScreen === 0 ? (
-            <DiaryPage user={user} camera={1} />
-          ) : (
-            <CameraPage camera={1} />
-          )
-        ) : (
-          <></>
-        )}
+        {user && <DiaryPage user={user} camera={1} />}
       </div>
-      <BottomNavigation
-        value={currentScreen}
-        onChange={(event, newValue) => {
-          setCurrentScreen(newValue);
-        }}
-        showLabels
-        className={classes.bottomNav}
-      >
-        <BottomNavigationAction label="Log" icon={<ArtTrackIcon />} />
-        <BottomNavigationAction label="Camera" icon={<CameraEnhanceIcon />} />
-      </BottomNavigation>
     </div>
   );
 }
