@@ -1,3 +1,19 @@
+/**
+ * Copyright 2021 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import "./App.css";
 import withFirebaseAuth from "react-with-firebase-auth";
 import firebase from "firebase/app";
@@ -16,6 +32,7 @@ import CameraEnhanceIcon from "@material-ui/icons/CameraEnhance";
 
 firebase.initializeApp(firebaseConfig);
 
+// Enable Google-based auth login
 const firebaseAppAuth = firebase.auth();
 const providers = {
   googleProvider: new firebase.auth.GoogleAuthProvider(),
@@ -42,9 +59,6 @@ const useStyles = makeStyles((theme) => ({
 function App(props) {
   const { user, signOut, signInWithGoogle } = props;
   const classes = useStyles();
-
-  // Screen navigation
-  const [currentScreen, setCurrentScreen] = React.useState(0);
 
   // For handling the profile menu
   const [anchorEl, setAnchorEl] = React.useState(null);

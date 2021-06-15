@@ -34,11 +34,12 @@ exports.sendSlackMessage = functions.firestore
 
     const data = snap.data();
 
-    // Construct a string of what event fired
-    let msgString = `Caught event${data.eventData.length > 1 ? 's' : ''} `;
+    // Construct a text string describing the event that happened
+    let msgString = `Caught event ${data.eventData.length > 1 ? 's' : ''} `;
     msgString += data.eventData.map(event => event.eventType).join(', ') + '.';
 
-    // Check if there's a slack webhook url registered with this user
+    // Check if there's a slack webhook url registered with this user.
+    // If so, a slack url will be found in the firestore database
     const doc = await db.doc(`users/${context.params.userId}`).get();
     if (!doc.exists || !doc.data().slack_url) {
         console.log(`No slack url found for user ${context.params.userId}`);
