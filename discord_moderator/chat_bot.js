@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-const Discord = require('discord.js');
-const perspective = require('./perspective.js');
-
 require('dotenv').config();
 
 // Set your emoji "awards" here
@@ -50,14 +47,16 @@ async function kickBaddie(user, guild) {
 /**
  * Analyzes a user's message for attribues
  * and reacts to it.
- * @param {string} message - message the user sent
+ * @param {any} evaluatorApi - the api that evaluates our message
+ * @param {any} message - message the user sent
+ * @param {any} users - users already processed
  * @return {bool} shouldKick - whether or not we should
  * kick the users
  */
-async function evaluateMessage(message) {
+async function evaluateMessage(evaluatorApi, message, users) {
   let scores;
   try {
-    scores = await perspective.analyzeText(message.content);
+    scores = await evaluatorApi.analyzeText(message.content);
   } catch (err) {
     console.log(err);
     return false;
@@ -73,7 +72,7 @@ async function evaluateMessage(message) {
                 users[userid][attribute] + 1 : 1;
     }
   }
-  // Return whether or not we should kick the user
+
   return (users[userid]['TOXICITY'] > process.env.KICK_THRESHOLD);
 }
 
@@ -98,18 +97,12 @@ function getKarma() {
   return scores.join('\n');
 }
 
-// Create an instance of a Discord client
-const client = new Discord.Client();
-
-client.on('ready', () => {
-  console.log('I am ready!');
-});
-
-client.on('message', async (message) => {
-  // Ignore messages that aren't from a guild
-  // or are from a bot
-  if (!message.guild || message.author.bot) return;
-
+/**
+ * Process the incoming message with the api and evaluates if kicking
+ * @param {any} evaluatorApi - the api that evaluates our message
+ * @param {any} message - the message
+ */
+async function processMessage(evaluatorApi, message) {
   // If we've never seen a user before, add them to memory
   const userid = message.author.id;
   if (!users[userid]) {
@@ -119,23 +112,47 @@ client.on('message', async (message) => {
   // Evaluate attributes of user's message
   let shouldKick = false;
   try {
-    shouldKick = await evaluateMessage(message);
+    shouldKick = await evaluateMessage(evaluatorApi, message, users);
   } catch (err) {
     console.log(err);
   }
   if (shouldKick) {
     kickBaddie(message.author, message.guild);
     delete users[message.author.id];
-    message.channel.send(`Kicked user ${message.author.username} from channel`);
+    message
+        .channel
+        .send(`Kicked user ${message.author.username} from channel`);
     return;
   }
-
 
   if (message.content.startsWith('!karma')) {
     const karma = getKarma(message);
     message.channel.send(karma ? karma : 'No karma yet!');
   }
-});
+}
 
-// Log our bot in using the token from https://discordapp.com/developers/applications/me
-client.login(process.env.DISCORD_TOKEN);
+/**
+ * Initiates the client and receives the evaluatorApi for messages
+ * @param {any} evaluatorApi - the api that evaluates our message
+ * @param {any} client - the client that represents the bot
+ */
+function init(evaluatorApi, client) {
+  client.on('ready', () => {
+    console.log('I am ready!');
+  });
+
+  client.on('message', async (message) => {
+    // Ignore messages that aren't from a guild
+    // or are from a bot
+    if (!message.guild || message.author.bot) return;
+
+    await processMessage(evaluatorApi, message);
+  });
+
+  client.login(process.env.DISCORD_TOKEN);
+}
+
+module.exports.methods = {
+  'init': init,
+  'evaluateMessage': evaluateMessage,
+};

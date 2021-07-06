@@ -81,7 +81,7 @@ const attributeThresholds = {
 
 10. Now you should be able to run your Discord bot from the command line. In the folder, `makcing_with_ml/discord_moderator`, run:
 
-`node discord.js`
+`node main.js`
 
 It should print `I am ready!` to your terminal.
 
@@ -101,7 +101,7 @@ Opening this link in your browser will give you the ability to add your new bot 
 
 12. Voila! Your moderator bot is running. In the Discord server where you added your bot, try typing
 phrases that will be recognized as toxic (i.e. "You stink"). The Bot should react with a 🧨 emoji 
-for toxic phrases and a 👊 emoji for insults. You can configure these reactions in the `discord.js` file:
+for toxic phrases and a 👊 emoji for insults. You can configure these reactions in the `chat_bot.js` file:
 
 ```
 // Set your emoji "awards" here
@@ -119,4 +119,6 @@ To modify this threshold, modify `KICK_THRESHOLD` in your `.env` file.
 
 13. Your Discord Bot should run successfully on your local computer now. As a next step, try hosting it with a Cloud service, like [App Engine](https://cloud.google.com/appengine).
 
+14. To run the unit tests, just execute:
 
+`npm test`
