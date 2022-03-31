@@ -1,1 +1,1 @@
-
+print("welcome use GPTCore !!")
