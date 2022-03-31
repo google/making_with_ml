@@ -13,7 +13,7 @@ and with the blog posts on [daleonai.com](https://daleonai.com/).
 | [instafashion](https://github.com/google/making_with_ml/tree/master/instafashion) | Use AI + Fashion Influencers to recommend outfits |
 | [ai_dubs](https://github.com/google/making_with_ml/tree/master/ai_dubs) | Transcribe, translate, and dub movies with ML |
 | [petcam](https://github.com/google/making_with_ml/tree/master/petcam) | Track objects (like pets) with TensorFlow.js |
-
+| [Image-GPT](https://github.com/google/making_with_ml/tree/master/Image-GPT) | Generate new style images with iGPT|
 
 
 
