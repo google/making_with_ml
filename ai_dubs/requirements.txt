@@ -57,7 +57,7 @@ mistune==0.8.4
 moviepy==1.0.3
 mypy-extensions==0.4.3
 nbclient==0.5.1
-nbconvert==6.0.7
+nbconvert==6.5.1
 nbformat==5.0.8
 nest-asyncio==1.4.3
 notebook==6.1.6
