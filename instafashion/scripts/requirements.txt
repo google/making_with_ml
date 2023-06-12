@@ -133,7 +133,7 @@ torchcontrib==0.0.2
 tornado==6.0.4
 tqdm==4.48.2
 traitlets==4.3.3
-transformers==2.8.0
+transformers==4.30.0
 uritemplate==3.0.1
 urllib3==1.25.10
 wasabi==0.7.1
