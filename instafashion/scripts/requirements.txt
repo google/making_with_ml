@@ -45,7 +45,7 @@ google-crc32c==0.1.0
 google-pasta==0.2.0
 google-resumable-media==0.7.1
 googleapis-common-protos==1.52.0
-grpcio==1.31.0
+grpcio==1.53.0
 h5py==2.10.0
 httplib2==0.18.1
 idna==2.10
