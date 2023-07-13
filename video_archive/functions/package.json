@@ -18,7 +18,7 @@
     "dotenv": "^8.2.0",
     "ffmpeg-extract-frames": "^2.0.2",
     "ffmpeg-installer": "^1.0.2",
-    "firebase-admin": "^8.12.1",
+    "firebase-admin": "^11.10.0",
     "firebase-functions": "^3.6.1",
     "hashcode": "^1.0.3",
     "uuid": "^8.1.0"
