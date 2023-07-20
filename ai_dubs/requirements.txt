@@ -82,7 +82,7 @@ pyasn1-modules==0.2.8
 pycodestyle==2.6.0
 pycparser==2.20
 pydub==0.24.1
-Pygments==2.7.3
+Pygments==2.15.0
 pylint==2.6.0
 pyparsing==2.4.7
 pyrsistent==0.17.3
