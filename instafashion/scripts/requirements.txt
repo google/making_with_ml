@@ -130,7 +130,7 @@ tokenizers==0.5.2
 toml==0.10.1
 torch==1.6.0
 torchcontrib==0.0.2
-tornado==6.0.4
+tornado==6.3.3
 tqdm==4.48.2
 traitlets==4.3.3
 transformers==2.8.0
