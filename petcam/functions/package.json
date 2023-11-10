@@ -13,7 +13,7 @@
   },
   "main": "index.js",
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^1.6.0",
     "firebase-admin": "^9.2.0",
     "firebase-functions": "^3.11.0"
   },
